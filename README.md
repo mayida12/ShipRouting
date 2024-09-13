@@ -35,7 +35,7 @@ Given the importance of fuel efficiency and safety in shipping, optimizing ship 
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/your-repo/optimal-ship-routing.git
+    git clone https://github.com/codewithmirza/optimal-ship-routing.git
     cd optimal-ship-routing
     ```
 
@@ -111,17 +111,10 @@ Given the importance of fuel efficiency and safety in shipping, optimizing ship 
 - [Video on Ship Routing](https://www.youtube.com/watch?v=ct9v-mQgYqE)
 - [Additional Video on Ship Routing](https://www.youtube.com/watch?v=wCTdHRTWtNI)
 
-## Contributing
-
-We welcome contributions to enhance the functionality and performance of this project. Please fork the repository and submit a pull request with your changes.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
-For any questions or further information, please contact the project team at [team@calistixinnovators.com](mailto:team@calistixinnovators.com).
+For any questions or further information, please contact the project team at [mail@calistixinnovators](mailto:manwaarullahb@gmail.com).
 
 ---
 
