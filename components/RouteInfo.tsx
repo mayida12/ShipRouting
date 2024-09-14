@@ -17,6 +17,9 @@ export default function RouteInfo({ isNavOpen }: RouteInfoProps) {
     setFuelConsumption(Math.random() * 1000 + 500)
     setEta(new Date(Date.now() + Math.random() * 5 * 24 * 60 * 60 * 1000).toLocaleString())
     setSafetyAlerts(['Storm warning near waypoint 2', 'High waves expected in region'])
+    if (typeof window !== 'undefined') {
+      // Access window or other browser globals here
+    }
   }, [])
 
   const handleExport = () => {

@@ -1,8 +1,13 @@
 'use client';
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
-import MapComponent from './MapComponent'
+
+const MapComponent = dynamic(() => import('./MapComponent'), {
+  ssr: false,
+  loading: () => <p>Loading map...</p>
+})
 
 export default function ShipRoutingApp() {
   const [isNavOpen, setIsNavOpen] = useState(true)
