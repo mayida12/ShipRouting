@@ -6,6 +6,7 @@ import numpy as np
 from flask import Flask, request, jsonify
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import dijkstra
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -19,44 +20,60 @@ def download_and_open_dataset(filename):
     blob.download_to_filename(f'/tmp/{filename}')
     return xr.open_dataset(f'/tmp/{filename}')
 
-def calculate_edge_weight(start, end, datasets, optimization_preference):
+def calculate_edge_weight(start, end, datasets, ship_type, ship_dimensions, departure_time):
     # Extract relevant data from datasets
-    currents = datasets['ROMS'].sel(LON=slice(min(start[0], end[0]), max(start[0], end[0])),
-                                    LAT=slice(min(start[1], end[1]), max(start[1], end[1])))
-    waves = datasets['Wavewatch'].sel(LON=slice(min(start[0], end[0]), max(start[0], end[0])),
-                                      LAT=slice(min(start[1], end[1]), max(start[1], end[1])))
+    roms = datasets['ROMS']
+    salt = datasets['salt']
+    wavewatch = datasets['Wavewatch']
     
     # Calculate distance
     distance = np.sqrt((end[0] - start[0])**2 + (end[1] - start[1])**2)
     
-    # Calculate average current speed and direction
-    u_current = currents.USURF.mean().values
-    v_current = currents.VSURF.mean().values
-    current_speed = np.sqrt(u_current**2 + v_current**2)
-    current_direction = np.arctan2(v_current, u_current)
+    # Extract data for the specific location and time
+    lon_slice = slice(min(start[0], end[0]), max(start[0], end[0]))
+    lat_slice = slice(min(start[1], end[1]), max(start[1], end[1]))
+    time_slice = slice(departure_time, departure_time + timedelta(hours=1))
     
-    # Calculate average wave height and wind speed
-    wave_height = waves.SWH.mean().values
-    wind_speed = waves.WS.mean().values
+    # ROMS data
+    usurf = roms.USURF.sel(LON=lon_slice, LAT=lat_slice, TAXIS=time_slice).mean().values
+    vsurf = roms.VSURF.sel(LON=lon_slice, LAT=lat_slice, TAXIS=time_slice).mean().values
+    sst = roms.SST.sel(LON=lon_slice, LAT=lat_slice, TAXIS=time_slice).mean().values
     
-    # Calculate weight based on optimization preference
-    if optimization_preference == 'fuel':
-        weight = distance * (1 + current_speed + 0.1 * wave_height)
-    elif optimization_preference == 'time':
-        weight = distance / (1 + 0.1 * current_speed - 0.05 * wave_height)
-    elif optimization_preference == 'safety':
-        weight = distance * (1 + 0.2 * wave_height + 0.1 * wind_speed)
-    else:
-        weight = distance
+    # Salt data
+    salt_value = salt.SALT.sel(LON_RHO=lon_slice, LAT_RHO=lat_slice, TAXIS=time_slice).mean().values
+    
+    # Wavewatch data
+    swh = wavewatch.SWH.sel(LON=lon_slice, LAT=lat_slice, TIME=time_slice).mean().values
+    ws = wavewatch.WS.sel(LON=lon_slice, LAT=lat_slice, TIME=time_slice).mean().values
+    
+    # Calculate base weight considering all factors
+    weight = distance * (1 + 0.1 * np.sqrt(usurf**2 + vsurf**2) + 0.05 * swh + 0.01 * ws)
+    
+    # Adjust weight based on ship type and dimensions
+    draft = ship_dimensions['draft']
+    if ship_type == 'cargo':
+        weight *= 1 + 0.1 * draft
+    elif ship_type == 'tanker':
+        weight *= 1 + 0.15 * draft
+    elif ship_type == 'passenger':
+        weight *= 1 + 0.05 * draft
+    
+    # Consider salt concentration for corrosion risk
+    weight *= 1 + 0.01 * salt_value
+    
+    # Consider sea surface temperature for fuel efficiency
+    weight *= 1 + 0.005 * abs(sst - 15)  # Assuming optimal temperature is 15°C
     
     return weight
 
-@app.route('/optimize_route', methods=['POST'])
+@app.route('/api/optimize_route', methods=['POST'])
 def optimize_route():
     data = request.get_json()
-    start_port = data['startPort']
-    end_port = data['endPort']
-    optimization_preference = data['optimizationPreference']
+    start_port = tuple(map(float, data['startPort'].split(',')))
+    end_port = tuple(map(float, data['endPort'].split(',')))
+    ship_type = data['shipType']
+    ship_dimensions = data['shipDimensions']
+    departure_date = datetime.fromisoformat(data['departureDate'])
     
     # Download and open datasets
     datasets = {
@@ -75,7 +92,7 @@ def optimize_route():
     adj_matrix = np.zeros((n_nodes, n_nodes))
     for i in range(n_nodes):
         for j in range(i+1, n_nodes):
-            weight = calculate_edge_weight(nodes[i], nodes[j], datasets, optimization_preference)
+            weight = calculate_edge_weight(nodes[i], nodes[j], datasets, ship_type, ship_dimensions, departure_date)
             adj_matrix[i, j] = weight
             adj_matrix[j, i] = weight
     

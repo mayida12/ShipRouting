@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Ship, Droplet, Waves, Clock, Anchor, Navigation, Calendar, Sliders } from 'lucide-react'
+import { Ship, Anchor, Navigation, Calendar } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -15,7 +15,6 @@ interface RouteFormProps {
 export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProps) {
   const [shipType, setShipType] = useState('')
   const [shipDimensions, setShipDimensions] = useState({ length: 0, width: 0, draft: 0 })
-  const [optimizationPreference, setOptimizationPreference] = useState('fuel')
   const [startPort, setStartPort] = useState('')
   const [endPort, setEndPort] = useState('')
   const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date())
@@ -23,7 +22,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const response = await fetch('https://gs://ship-routing-app.appspot.com/optimize_route', {
+      const response = await fetch('/api/optimize_route', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -31,7 +30,6 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
         body: JSON.stringify({
           shipType,
           shipDimensions,
-          optimizationPreference,
           startPort,
           endPort,
           departureDate: departureDate?.toISOString(),
@@ -65,41 +63,34 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
         <Label className="text-lg font-semibold text-gray-700 dark:text-gray-300">Ship Dimensions</Label>
         <div className="grid grid-cols-3 gap-2 mt-1">
-          <Input
-            type="number"
-            placeholder="Length (m)"
-            value={shipDimensions.length}
-            onChange={(e) => setShipDimensions({ ...shipDimensions, length: Number(e.target.value) })}
-          />
-          <Input
-            type="number"
-            placeholder="Width (m)"
-            value={shipDimensions.width}
-            onChange={(e) => setShipDimensions({ ...shipDimensions, width: Number(e.target.value) })}
-          />
-          <Input
-            type="number"
-            placeholder="Draft (m)"
-            value={shipDimensions.draft}
-            onChange={(e) => setShipDimensions({ ...shipDimensions, draft: Number(e.target.value) })}
-          />
+          <div>
+            <Label htmlFor="shipLength" className="text-sm">Length (m)</Label>
+            <Input
+              id="shipLength"
+              type="number"
+              value={shipDimensions.length}
+              onChange={(e) => setShipDimensions({ ...shipDimensions, length: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="shipWidth" className="text-sm">Width (m)</Label>
+            <Input
+              id="shipWidth"
+              type="number"
+              value={shipDimensions.width}
+              onChange={(e) => setShipDimensions({ ...shipDimensions, width: Number(e.target.value) })}
+            />
+          </div>
+          <div>
+            <Label htmlFor="shipDraft" className="text-sm">Draft (m)</Label>
+            <Input
+              id="shipDraft"
+              type="number"
+              value={shipDimensions.draft}
+              onChange={(e) => setShipDimensions({ ...shipDimensions, draft: Number(e.target.value) })}
+            />
+          </div>
         </div>
-      </motion.div>
-
-      <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
-        <Label htmlFor="optimizationPreference" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-          <Sliders className="mr-2" /> Optimization Preference
-        </Label>
-        <Select onValueChange={setOptimizationPreference} value={optimizationPreference}>
-          <SelectTrigger id="optimizationPreference" className="w-full mt-1">
-            <SelectValue placeholder="Select preference" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="fuel">Fuel Efficiency</SelectItem>
-            <SelectItem value="time">Travel Time</SelectItem>
-            <SelectItem value="safety">Route Safety</SelectItem>
-          </SelectContent>
-        </Select>
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
@@ -111,7 +102,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
           value={startPort}
           onChange={(e) => setStartPort(e.target.value)}
           className="mt-1"
-          placeholder="Enter start port"
+          placeholder="Enter start port coordinates (lon, lat)"
         />
       </motion.div>
 
@@ -124,7 +115,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
           value={endPort}
           onChange={(e) => setEndPort(e.target.value)}
           className="mt-1"
-          placeholder="Enter end port"
+          placeholder="Enter end port coordinates (lon, lat)"
         />
       </motion.div>
 
