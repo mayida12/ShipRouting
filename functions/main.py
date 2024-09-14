@@ -69,8 +69,8 @@ def calculate_edge_weight(start, end, datasets, ship_type, ship_dimensions, depa
 @app.route('/api/optimize_route', methods=['POST'])
 def optimize_route():
     data = request.get_json()
-    start_port = tuple(map(float, data['startPort'].split(',')))
-    end_port = tuple(map(float, data['endPort'].split(',')))
+    start_port = tuple(data['startPort'])
+    end_port = tuple(data['endPort'])
     ship_type = data['shipType']
     ship_dimensions = data['shipDimensions']
     departure_date = datetime.fromisoformat(data['departureDate'])
