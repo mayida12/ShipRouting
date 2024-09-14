@@ -2,17 +2,16 @@
 
 import { motion } from 'framer-motion'
 import RouteForm from './RouteForm'
-import WeatherToggle from './WeatherToggle'
-import RouteInfo from './RouteInfo'
 
 interface SidebarProps {
   isNavOpen: boolean
   setSelectedRoute: (route: [number, number][]) => void
-  showWeather: boolean
-  setShowWeather: (show: boolean) => void
+  startPort: [number, number] | null
+  endPort: [number, number] | null
+  setIsSelectingLocation: (type: 'start' | 'end' | null) => void
 }
 
-export default function Sidebar({ isNavOpen, setSelectedRoute, showWeather, setShowWeather }: SidebarProps) {
+export default function Sidebar({ isNavOpen, setSelectedRoute, startPort, endPort, setIsSelectingLocation }: SidebarProps) {
   return (
     <motion.div 
       className={`bg-white dark:bg-gray-800 shadow-lg overflow-y-auto transition-all duration-300 ease-in-out ${
@@ -28,9 +27,13 @@ export default function Sidebar({ isNavOpen, setSelectedRoute, showWeather, setS
         >
           {isNavOpen ? 'Optimal Ship Routing' : 'OSR'}
         </motion.h1>
-        <RouteForm setSelectedRoute={setSelectedRoute} isNavOpen={isNavOpen} />
-        <WeatherToggle showWeather={showWeather} setShowWeather={setShowWeather} isNavOpen={isNavOpen} />
-        <RouteInfo isNavOpen={isNavOpen} />
+        <RouteForm
+          setSelectedRoute={setSelectedRoute}
+          isNavOpen={isNavOpen}
+          startPort={startPort}
+          endPort={endPort}
+          setIsSelectingLocation={setIsSelectingLocation}
+        />
       </div>
     </motion.div>
   )

@@ -2,29 +2,25 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Ship, Anchor, Navigation, Calendar } from 'lucide-react'
 import { Button } from './ui/button'
-import { Input } from './ui/input'
 import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { DatePicker } from "./ui/date-picker"
-import dynamic from 'next/dynamic'
+import { DateTimePicker } from "./ui/date-time-picker"
 import { createOrGetSession, saveSessionData, getSessionData } from '../lib/session'
-
-const MapSelector = dynamic(() => import('./MapSelector'), { ssr: false })
+import { Input } from './ui/input'
 
 interface RouteFormProps {
   setSelectedRoute: (route: [number, number][]) => void
   isNavOpen: boolean
+  startPort: [number, number] | null
+  endPort: [number, number] | null
+  setIsSelectingLocation: (type: 'start' | 'end' | null) => void
 }
 
-export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProps) {
+export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endPort, setIsSelectingLocation }: RouteFormProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [shipType, setShipType] = useState('')
   const [shipDimensions, setShipDimensions] = useState({ length: 0, width: 0, draft: 0 })
-  const [startPort, setStartPort] = useState({ name: '', coordinates: [0, 0] as [number, number] })
-  const [endPort, setEndPort] = useState({ name: '', coordinates: [0, 0] as [number, number] })
-  const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date())
-  const [isSelectingStart, setIsSelectingStart] = useState(false)
-  const [isSelectingEnd, setIsSelectingEnd] = useState(false)
+  const [departureDateTime, setDepartureDateTime] = useState<Date | undefined>(new Date())
 
   useEffect(() => {
     async function initSession() {
@@ -34,9 +30,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
       if (data) {
         setShipType(data.shipType || '')
         setShipDimensions(data.shipDimensions || { length: 0, width: 0, draft: 0 })
-        setStartPort(data.startPort || { name: '', coordinates: [0, 0] })
-        setEndPort(data.endPort || { name: '', coordinates: [0, 0] })
-        setDepartureDate(data.departureDate ? new Date(data.departureDate) : new Date())
+        setDepartureDateTime(data.departureDateTime ? new Date(data.departureDateTime) : new Date())
       }
     }
     initSession()
@@ -49,10 +43,10 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
         shipDimensions,
         startPort,
         endPort,
-        departureDate: departureDate?.toISOString(),
+        departureDateTime: departureDateTime?.toISOString(),
       })
     }
-  }, [sessionId, shipType, shipDimensions, startPort, endPort, departureDate])
+  }, [sessionId, shipType, shipDimensions, startPort, endPort, departureDateTime])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,9 +59,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
         body: JSON.stringify({
           shipType,
           shipDimensions,
-          startPort: startPort.coordinates,
-          endPort: endPort.coordinates,
-          departureDate: departureDate?.toISOString(),
+          startPort,
+          endPort,
+          departureDateTime: departureDateTime?.toISOString(),
         })
       });
       const result = await response.json();
@@ -132,15 +126,8 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
         <Label htmlFor="startPort" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
           <Anchor className="mr-2" /> Start Port
         </Label>
-        <Input
-          id="startPort"
-          value={startPort.name}
-          onChange={(e) => setStartPort({ ...startPort, name: e.target.value })}
-          className="mt-1"
-          placeholder="Enter start port name"
-        />
-        <Button onClick={() => setIsSelectingStart(true)} className="mt-2">
-          Select on Map
+        <Button onClick={() => setIsSelectingLocation('start')} className="mt-2 w-full">
+          {startPort ? `Selected: ${startPort[0].toFixed(2)}, ${startPort[1].toFixed(2)}` : 'Select on Map'}
         </Button>
       </motion.div>
 
@@ -148,25 +135,18 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
         <Label htmlFor="endPort" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
           <Navigation className="mr-2" /> End Port
         </Label>
-        <Input
-          id="endPort"
-          value={endPort.name}
-          onChange={(e) => setEndPort({ ...endPort, name: e.target.value })}
-          className="mt-1"
-          placeholder="Enter end port name"
-        />
-        <Button onClick={() => setIsSelectingEnd(true)} className="mt-2">
-          Select on Map
+        <Button onClick={() => setIsSelectingLocation('end')} className="mt-2 w-full">
+          {endPort ? `Selected: ${endPort[0].toFixed(2)}, ${endPort[1].toFixed(2)}` : 'Select on Map'}
         </Button>
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
-        <Label htmlFor="departureDate" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-          <Calendar className="mr-2" /> Departure Date
+        <Label htmlFor="departureDateTime" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+          <Calendar className="mr-2" /> Departure Date & Time
         </Label>
-        <DatePicker
-          selected={departureDate}
-          onSelect={setDepartureDate}
+        <DateTimePicker
+          selected={departureDateTime}
+          onSelect={setDepartureDateTime}
           className="w-full mt-1"
         />
       </motion.div>
@@ -176,23 +156,6 @@ export default function RouteForm({ setSelectedRoute, isNavOpen }: RouteFormProp
           Calculate Optimal Route
         </Button>
       </motion.div>
-
-      {(isSelectingStart || isSelectingEnd) && (
-        <MapSelector
-          isOpen={isSelectingStart || isSelectingEnd}
-          onClose={() => {
-            setIsSelectingStart(false)
-            setIsSelectingEnd(false)
-          }}
-          onSelect={(coordinates) => {
-            if (isSelectingStart) {
-              setStartPort({ ...startPort, coordinates })
-            } else {
-              setEndPort({ ...endPort, coordinates })
-            }
-          }}
-        />
-      )}
     </form>
   )
 }

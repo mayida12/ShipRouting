@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
+import SearchBar from './SearchBar'
 
 const MapComponent = dynamic(() => import('./MapComponent'), {
   ssr: false,
@@ -12,15 +13,27 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
 export default function ShipRoutingApp() {
   const [isNavOpen, setIsNavOpen] = useState(true)
   const [selectedRoute, setSelectedRoute] = useState<[number, number][] | null>(null)
-  const [showWeather, setShowWeather] = useState(false)
+  const [startPort, setStartPort] = useState<[number, number] | null>(null)
+  const [endPort, setEndPort] = useState<[number, number] | null>(null)
+  const [isSelectingLocation, setIsSelectingLocation] = useState<'start' | 'end' | null>(null)
+
+  const handleLocationSelect = (location: [number, number]) => {
+    if (isSelectingLocation === 'start') {
+      setStartPort(location)
+    } else if (isSelectingLocation === 'end') {
+      setEndPort(location)
+    }
+    setIsSelectingLocation(null)
+  }
 
   return (
     <div className="flex h-screen">
       <Sidebar
         isNavOpen={isNavOpen}
         setSelectedRoute={setSelectedRoute}
-        showWeather={showWeather}
-        setShowWeather={setShowWeather}
+        startPort={startPort}
+        endPort={endPort}
+        setIsSelectingLocation={setIsSelectingLocation}
       />
       <main className="flex-1 relative">
         <button
@@ -29,7 +42,16 @@ export default function ShipRoutingApp() {
         >
           {isNavOpen ? '←' : '→'}
         </button>
-        <MapComponent route={selectedRoute} showWeather={showWeather} />
+        {isSelectingLocation && (
+          <SearchBar onLocationSelect={handleLocationSelect} />
+        )}
+        <MapComponent
+          route={selectedRoute}
+          startPort={startPort}
+          endPort={endPort}
+          isSelectingLocation={isSelectingLocation}
+          onLocationSelect={handleLocationSelect}
+        />
       </main>
     </div>
   )
