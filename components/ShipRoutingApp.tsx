@@ -16,6 +16,7 @@ export default function ShipRoutingApp() {
   const [startPort, setStartPort] = useState<[number, number] | null>(null)
   const [endPort, setEndPort] = useState<[number, number] | null>(null)
   const [isSelectingLocation, setIsSelectingLocation] = useState<'start' | 'end' | null>(null)
+  const [showWeather, setShowWeather] = useState(false)
 
   const handleLocationSelect = (location: [number, number]) => {
     if (isSelectingLocation === 'start') {
@@ -51,6 +52,7 @@ export default function ShipRoutingApp() {
           endPort={endPort}
           isSelectingLocation={isSelectingLocation}
           onLocationSelect={handleLocationSelect}
+          showWeather={showWeather}
         />
       </main>
     </div>
