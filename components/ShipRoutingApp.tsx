@@ -17,6 +17,7 @@ export default function ShipRoutingApp() {
   const [endPort, setEndPort] = useState<[number, number] | null>(null)
   const [isSelectingLocation, setIsSelectingLocation] = useState<'start' | 'end' | null>(null)
   const [showWeather, setShowWeather] = useState(false)
+  const [zoomToLocation, setZoomToLocation] = useState<[number, number] | null>(null)
 
   const handleLocationSelect = (location: [number, number]) => {
     if (isSelectingLocation === 'start') {
@@ -24,6 +25,16 @@ export default function ShipRoutingApp() {
     } else if (isSelectingLocation === 'end') {
       setEndPort(location)
     }
+    setZoomToLocation(location)
+  }
+
+  const handleSearch = (query: string) => {
+    // Implement search functionality here
+    // This could involve calling an API to get coordinates for the search query
+    // and then calling setZoomToLocation with the result
+  }
+
+  const handleConfirmLocation = () => {
     setIsSelectingLocation(null)
   }
 
@@ -44,7 +55,11 @@ export default function ShipRoutingApp() {
           {isNavOpen ? '←' : '→'}
         </button>
         {isSelectingLocation && (
-          <SearchBar onLocationSelect={handleLocationSelect} />
+          <SearchBar
+            onLocationSelect={handleLocationSelect}
+            onSearch={handleSearch}
+            onConfirmLocation={handleConfirmLocation}
+          />
         )}
         <MapComponent
           route={selectedRoute}
@@ -53,6 +68,7 @@ export default function ShipRoutingApp() {
           isSelectingLocation={isSelectingLocation}
           onLocationSelect={handleLocationSelect}
           showWeather={showWeather}
+          zoomToLocation={zoomToLocation}
         />
       </main>
     </div>

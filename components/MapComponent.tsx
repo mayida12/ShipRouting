@@ -12,7 +12,8 @@ interface MapComponentProps {
   endPort: [number, number] | null
   isSelectingLocation: 'start' | 'end' | null
   onLocationSelect: (location: [number, number]) => void
-  showWeather: boolean  // Add this line
+  showWeather: boolean
+  zoomToLocation: [number, number] | null
 }
 
 const LeafletMap = dynamic<MapComponentProps>(() => import('./LeafletMap'), {
@@ -81,7 +82,15 @@ function ShipMarker({ position }: { position: [number, number] }) {
   return <Marker position={[position[1], position[0]]} ref={markerRef} />
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ route, startPort, endPort, isSelectingLocation, onLocationSelect, showWeather }) => {
+const MapComponent: React.FC<MapComponentProps> = ({ 
+  route, 
+  startPort, 
+  endPort, 
+  isSelectingLocation, 
+  onLocationSelect, 
+  showWeather,
+  zoomToLocation 
+}) => {
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
@@ -100,7 +109,8 @@ const MapComponent: React.FC<MapComponentProps> = ({ route, startPort, endPort, 
         endPort={endPort}
         isSelectingLocation={isSelectingLocation}
         onLocationSelect={onLocationSelect}
-        showWeather={showWeather}  // Add this line
+        showWeather={showWeather}
+        zoomToLocation={zoomToLocation}
       />
     </div>
   )

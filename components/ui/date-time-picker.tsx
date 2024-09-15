@@ -68,44 +68,55 @@ export function DateTimePicker({
           {date ? format(date, "PPP HH:mm") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0">
-        <Calendar
-          mode="single"
-          selected={selectedDate}
-          onSelect={handleDateSelect}
-        />
-        <div className="flex items-center justify-center p-2 border-t">
-          <Select
-            onValueChange={(value) => handleTimeChange("hour", value)}
-            value={date ? date.getHours().toString() : undefined}
-          >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue placeholder="Hour" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 24 }, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>
-                  {i.toString().padStart(2, '0')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <span className="mx-2">:</span>
-          <Select
-            onValueChange={(value) => handleTimeChange("minute", value)}
-            value={date ? date.getMinutes().toString() : undefined}
-          >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue placeholder="Minute" />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 60 }, (_, i) => (
-                <SelectItem key={i} value={i.toString()}>
-                  {i.toString().padStart(2, '0')}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <PopoverContent className="w-auto p-0" align="start">
+        <div className="flex flex-col sm:flex-row">
+          <Calendar
+            mode="single"
+            selected={selectedDate}
+            onSelect={handleDateSelect}
+            className="border-r"
+          />
+          <div className="p-3 flex flex-col justify-between">
+            <div className="space-y-2">
+              <h4 className="font-medium">Time</h4>
+              <div className="flex items-center space-x-2">
+                <Select
+                  onValueChange={(value) => handleTimeChange("hour", value)}
+                  value={date ? date.getHours().toString() : undefined}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue placeholder="Hour" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 24 }, (_, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {i.toString().padStart(2, '0')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <span>:</span>
+                <Select
+                  onValueChange={(value) => handleTimeChange("minute", value)}
+                  value={date ? date.getMinutes().toString() : undefined}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue placeholder="Minute" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 60 }, (_, i) => (
+                      <SelectItem key={i} value={i.toString()}>
+                        {i.toString().padStart(2, '0')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <Button onClick={() => setDate(selectedDate)} className="mt-4">
+              Confirm
+            </Button>
+          </div>
         </div>
       </PopoverContent>
     </Popover>
