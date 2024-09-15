@@ -4,6 +4,8 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import SearchBar from './SearchBar'
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from '../lib/firebase'
 
 const MapComponent = dynamic(() => import('./MapComponent'), {
   ssr: false,
@@ -30,13 +32,15 @@ export default function ShipRoutingApp() {
 
   const handleSearch = async (query: string) => {
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
-      const data = await response.json()
+      const functions = getFunctions(app);
+      const search = httpsCallable(functions, 'search');
+      const result = await search({ query });
+      const data = result.data as { coordinates: [number, number] };
       if (data.coordinates) {
-        setZoomToLocation(data.coordinates)
+        setZoomToLocation(data.coordinates);
       }
     } catch (error) {
-      console.error('Error searching for location:', error)
+      console.error('Error searching for location:', error);
     }
   }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Ship, Anchor, Navigation, Calendar } from 'lucide-react'
 import { Button } from './ui/button'
@@ -6,6 +6,8 @@ import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { DateTimePicker } from "./ui/date-time-picker"
 import { createOrGetSession, saveSessionData, getSessionData } from '../lib/session'
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from '../lib/firebase'
 
 interface RouteFormProps {
   setSelectedRoute: (route: [number, number][]) => void
@@ -20,8 +22,8 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
   const [shipType, setShipType] = useState('')
   const [departureDateTime, setDepartureDateTime] = useState<Date | undefined>(new Date())
 
-  // Set specific dimensions for a cargo ship
-  const shipDimensions = { length: 200, width: 32, draft: 13 }
+  // Wrap shipDimensions in useMemo
+  const shipDimensions = useMemo(() => ({ length: 200, width: 32, draft: 13 }), [])
 
   useEffect(() => {
     async function initSession() {
@@ -46,7 +48,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         departureDateTime: departureDateTime?.toISOString(),
       })
     }
-  }, [sessionId, shipType, startPort, endPort, departureDateTime])
+  }, [sessionId, shipType, startPort, endPort, departureDateTime, shipDimensions])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,21 +57,20 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       return
     }
     try {
-      const response = await fetch('/api/optimize_route', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          shipType,
-          shipDimensions,
-          startPort,
-          endPort,
-          departureDateTime: departureDateTime?.toISOString(),
-        })
+      const functions = getFunctions(app);
+      const optimizeRoute = httpsCallable(functions, 'optimize_route');
+      const result = await optimizeRoute({
+        shipType,
+        shipDimensions,
+        startPort,
+        endPort,
+        departureDateTime: departureDateTime?.toISOString(),
       });
-      const result = await response.json();
-      setSelectedRoute(result.optimal_path);
+      
+      // Type assertion for result.data
+      const optimizeRouteResult = result.data as { optimal_path: [number, number][], optimal_path_length: number };
+      
+      setSelectedRoute(optimizeRouteResult.optimal_path);
     } catch (error) {
       console.error('Error calculating optimal route:', error);
     }
