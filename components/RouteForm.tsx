@@ -25,6 +25,12 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
   // Wrap shipDimensions in useMemo
   const shipDimensions = useMemo(() => ({ length: 200, width: 32, draft: 13 }), [])
 
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
+
+  const isFormValid = () => {
+    return shipType && startPort && endPort && departureDateTime
+  }
+
   useEffect(() => {
     async function initSession() {
       const id = await createOrGetSession()
@@ -52,8 +58,13 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!startPort || !endPort || !shipType || !departureDateTime) {
-      alert('Please fill in all fields')
+    if (!isFormValid()) {
+      const errors: {[key: string]: string} = {}
+      if (!shipType) errors.shipType = "Ship type is required"
+      if (!startPort) errors.startPort = "Start port is required"
+      if (!endPort) errors.endPort = "End port is required"
+      if (!departureDateTime) errors.departureDateTime = "Departure date and time is required"
+      setFormErrors(errors)
       return
     }
 
@@ -65,7 +76,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         shipDimensions,
         startPort,
         endPort,
-        departureDateTime: departureDateTime.toISOString(),
+        departureDateTime: departureDateTime ? departureDateTime.toISOString() : null,
       });
       const data = result.data as { optimal_path: [number, number][] };
       setSelectedRoute(data.optimal_path);
@@ -122,10 +133,18 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
-        <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600 text-white">
+        <Button 
+          type="submit" 
+          className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
+          disabled={!isFormValid()}
+        >
           Calculate Optimal Route
         </Button>
       </motion.div>
+
+      {Object.entries(formErrors).map(([field, error]) => (
+        <p key={field} className="text-red-500 text-sm">{error}</p>
+      ))}
     </form>
   )
 }

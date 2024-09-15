@@ -52,18 +52,13 @@ export default function ShipRoutingApp() {
     <div className="flex h-screen">
       <Sidebar
         isNavOpen={isNavOpen}
+        setIsNavOpen={setIsNavOpen}
         setSelectedRoute={setSelectedRoute}
         startPort={startPort}
         endPort={endPort}
         setIsSelectingLocation={setIsSelectingLocation}
       />
       <main className="flex-1 relative">
-        <button
-          onClick={() => setIsNavOpen(!isNavOpen)}
-          className="fixed bottom-6 left-6 z-10 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md"
-        >
-          {isNavOpen ? '←' : '→'}
-        </button>
         {isSelectingLocation && (
           <SearchBar
             onLocationSelect={handleLocationSelect}

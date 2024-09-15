@@ -3,20 +3,22 @@
 import { motion } from 'framer-motion'
 import { HTMLMotionProps } from 'framer-motion'
 import RouteForm from './RouteForm'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface SidebarProps {
   isNavOpen: boolean
+  setIsNavOpen: (isOpen: boolean) => void
   setSelectedRoute: (route: [number, number][]) => void
   startPort: [number, number] | null
   endPort: [number, number] | null
   setIsSelectingLocation: (type: 'start' | 'end' | null) => void
 }
 
-export default function Sidebar({ isNavOpen, setSelectedRoute, startPort, endPort, setIsSelectingLocation }: SidebarProps) {
+export default function Sidebar({ isNavOpen, setIsNavOpen, setSelectedRoute, startPort, endPort, setIsSelectingLocation }: SidebarProps) {
   return (
     <motion.div 
       {...({} as HTMLMotionProps<"div">)}
-      className={`bg-white dark:bg-gray-800 shadow-lg overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`bg-white dark:bg-gray-800 shadow-lg overflow-y-auto transition-all duration-300 ease-in-out relative ${
         isNavOpen ? 'w-96' : 'w-20'
       }`}
       initial={false}
@@ -37,6 +39,12 @@ export default function Sidebar({ isNavOpen, setSelectedRoute, startPort, endPor
           setIsSelectingLocation={setIsSelectingLocation}
         />
       </div>
+      <button
+        onClick={() => setIsNavOpen(!isNavOpen)}
+        className="absolute bottom-4 right-4 bg-black text-white p-2 rounded-full shadow-md z-10"
+      >
+        {isNavOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+      </button>
     </motion.div>
   )
 }
