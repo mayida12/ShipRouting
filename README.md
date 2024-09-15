@@ -2,120 +2,85 @@
 
 ## Project Overview
 
-The Optimal Ship Routing Algorithm project aims to develop a versatile and efficient algorithm for optimizing ship routes, focusing on fuel consumption, travel time, passenger comfort, and route safety. This application will be particularly beneficial for the Indian shipping industry, enabling better route planning within the Indian Ocean region.
+The Optimal Ship Routing Algorithm project is a static web application that calculates efficient ship routes within the Indian Ocean region. It focuses on optimizing routes based on factors such as fuel consumption, travel time, and safety considerations.
 
-### Problem Statement
+### Key Features
 
-Given the importance of fuel efficiency and safety in shipping, optimizing ship routes based on various parameters (fuel consumption, travel time, weather conditions, etc.) is crucial. The goal is to create an application that can suggest optimal routes between ports in the Indian Ocean, considering factors like surface winds, currents, and waves.
+- Interactive map interface for route planning
+- Client-side route optimization algorithm
+- Visualization of optimized routes
+- Consideration of environmental factors (winds, currents, waves)
 
-### Technologies Used
+## Technologies Used
 
-- **Frontend**: Next.js, Tailwind CSS, Leaflet
-- **Backend**: Firebase Functions
-- **Database**: Firebase Realtime Database or Cloud Firestore
-- **Optimization Algorithm**: Custom implementation in Node.js
+- **Frontend**: Next.js 14, React, Tailwind CSS
+- **Map Integration**: Leaflet with react-leaflet
+- **Optimization**: Custom client-side algorithm
+- **Deployment**: Firebase Hosting
 
-## Features
+## Live Demo
 
-- **Map Integration**: Display ship routes and environmental data using Leaflet.
-- **Real-time Data**: Update ship routes and environmental data in real-time using Firebase.
-- **Optimization Algorithm**: Calculate optimal routes considering fuel consumption, travel time, and safety.
-- **User Interface**: Interactive forms for user input (e.g., ports, preferences, time frame).
+Visit the live application at [https://ship-routing-app.web.app/](https://ship-routing-app.web.app/)
 
 ## Setup and Installation
 
 ### Prerequisites
 
-- Node.js (v14 or later)
-- Firebase CLI
-- Next.js and Tailwind CSS
+- Node.js (v18 or later)
+- npm
 
-### Frontend Setup
+### Local Development
 
-1. **Clone the Repository**
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/codewithmirza/ship-routing-app.git
+   cd ship-routing-app
+   ```
 
-    ```bash
-    git clone https://github.com/codewithmirza/optimal-ship-routing.git
-    cd optimal-ship-routing
-    ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-2. **Install Dependencies**
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-    ```bash
-    npm install
-    ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-3. **Run the Development Server**
+## Building for Production
 
-    ```bash
-    npm run dev
-    ```
+1. Create a production build:
+   ```bash
+   npm run build
+   ```
 
-### Backend Setup
+2. The static files will be generated in the `out` directory.
 
-1. **Install Firebase CLI**
+## Project Structure
 
-    ```bash
-    npm install -g firebase-tools
-    ```
+- `pages/`: Next.js pages and routing
+- `components/`: React components, including LeafletMap
+- `utils/`: Utility functions, including route optimization logic
+- `styles/`: CSS and Tailwind configurations
+- `public/`: Static assets
 
-2. **Initialize Firebase Functions**
+## Data Sources
 
-    ```bash
-    firebase init functions
-    ```
+- Surface currents and waves data: [INCOIS Forecasts](https://incois.gov.in/portal/osf/osf.jsp)
+- Surface winds data: Available upon request from INCOIS
 
-3. **Install Dependencies**
+## Limitations and Future Improvements
 
-    ```bash
-    cd functions
-    npm install
-    ```
-
-4. **Deploy Firebase Functions**
-
-    ```bash
-    firebase deploy --only functions
-    ```
-
-## Usage
-
-1. **Frontend**: Navigate to `http://localhost:3000` to view the application. Use the input forms to select ports, optimization preferences, and specify the time frame for the route.
-
-2. **Backend**: The Firebase Functions handle backend logic, including data processing and route optimization. Ensure that the functions are deployed and accessible via Firebase Hosting.
-
-3. **Data Handling**: Data extracted from .nc files will be stored in Firebase Realtime Database or Cloud Firestore. Ensure the data structure is set up according to the project's needs.
-
-## Deployment
-
-1. **Deploy Frontend**
-
-    ```bash
-    firebase deploy --only hosting
-    ```
-
-2. **Deploy Functions**
-
-    ```bash
-    firebase deploy --only functions
-    ```
-
-## Dataset
-
-- Short-term forecasts of surface currents and waves: [INCOIS Forecasts](https://incois.gov.in/portal/osf/osf.jsp)
-- Surface winds forecasts: Provided by INCOIS upon request
-
-## References
-
-- [Indian National Center for Ocean Information Services (INCOIS)](https://incois.gov.in/)
-- [Video on Ship Routing](https://www.youtube.com/watch?v=ct9v-mQgYqE)
-- [Additional Video on Ship Routing](https://www.youtube.com/watch?v=wCTdHRTWtNI)
-
+- The client-side optimization may be less efficient for complex routes
+- Consider implementing a backend service for more intensive computations
+- Explore integration with real-time weather APIs for more accurate routing
 
 ## Contact
 
-For any questions or further information, please contact the project team at [mail@calistixinnovators](mailto:manwaarullahb@gmail.com).
+For any questions or further information, please visit the [GitHub repository](https://github.com/codewithmirza/ship-routing-app).
 
 ---
 
-Feel free to adjust the contact details, links, and any other project-specific information as needed.
+Remember to replace placeholder links, email addresses, and other project-specific details as needed.

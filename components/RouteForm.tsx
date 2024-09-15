@@ -52,10 +52,11 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!shipType) {
-      alert("Please select a ship type")
+    if (!startPort || !endPort || !shipType || !departureDateTime) {
+      alert('Please fill in all fields')
       return
     }
+
     try {
       const functions = getFunctions(app);
       const optimizeRoute = httpsCallable(functions, 'optimize_route');
@@ -64,15 +65,13 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         shipDimensions,
         startPort,
         endPort,
-        departureDateTime: departureDateTime?.toISOString(),
+        departureDateTime: departureDateTime.toISOString(),
       });
-      
-      // Type assertion for result.data
-      const optimizeRouteResult = result.data as { optimal_path: [number, number][], optimal_path_length: number };
-      
-      setSelectedRoute(optimizeRouteResult.optimal_path);
+      const data = result.data as { optimal_path: [number, number][] };
+      setSelectedRoute(data.optimal_path);
     } catch (error) {
-      console.error('Error calculating optimal route:', error);
+      console.error('Error optimizing route:', error);
+      alert('Error optimizing route. Please try again.');
     }
   }
 
