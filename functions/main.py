@@ -1,29 +1,33 @@
 # functions/main.py
-import firebase_functions as functions
+from firebase_functions import https_fn
+from firebase_admin import initialize_app
 import requests
-from datetime import datetime
-from typing import List, Dict, Any
+from typing import Any, Dict
 
-def search(request: functions.Request) -> functions.Response:
-    query = request.json.get('query')
+initialize_app()
+
+@https_fn.on_request()
+def search(req: https_fn.Request) -> https_fn.Response:
+    query = req.json.get('query')
     if not query:
-        return functions.Response("No query provided", status=400)
+        return https_fn.Response("No query provided", status=400)
 
     try:
         response = requests.get(f"https://nominatim.openstreetmap.org/search?format=json&q={query}")
         data = response.json()
         if data:
             coordinates = [float(data[0]['lon']), float(data[0]['lat'])]
-            return functions.Response({"coordinates": coordinates})
+            return https_fn.Response(json={"coordinates": coordinates})
         else:
-            return functions.Response({"coordinates": None, "error": "Location not found"}, status=404)
+            return https_fn.Response(json={"coordinates": None, "error": "Location not found"}, status=404)
     except Exception as e:
-        return functions.Response({"coordinates": None, "error": str(e)}, status=500)
+        return https_fn.Response(json={"coordinates": None, "error": str(e)}, status=500)
 
-def optimize_route(request: functions.Request) -> functions.Response:
-    data = request.json
+@https_fn.on_request()
+def optimize_route(req: https_fn.Request) -> https_fn.Response:
+    data = req.json
     if not data:
-        return functions.Response("No data provided", status=400)
+        return https_fn.Response("No data provided", status=400)
 
     ship_type = data.get('shipType')
     ship_dimensions = data.get('shipDimensions')
@@ -32,7 +36,7 @@ def optimize_route(request: functions.Request) -> functions.Response:
     departure_date_time = data.get('departureDateTime')
 
     if not all([ship_type, ship_dimensions, start_port, end_port, departure_date_time]):
-        return functions.Response("Missing required fields", status=400)
+        return https_fn.Response("Missing required fields", status=400)
 
     try:
         # Here you would typically call your route optimization logic
@@ -43,9 +47,6 @@ def optimize_route(request: functions.Request) -> functions.Response:
             end_port
         ]
 
-        return functions.Response({"optimal_path": dummy_route})
+        return https_fn.Response(json={"optimal_path": dummy_route})
     except Exception as e:
-        return functions.Response({"optimal_path": None, "error": str(e)}, status=500)
-
-search_function = functions.https_fn.on_request(search)
-optimize_route_function = functions.https_fn.on_request(optimize_route)
+        return https_fn.Response(json={"optimal_path": None, "error": str(e)}, status=500)
