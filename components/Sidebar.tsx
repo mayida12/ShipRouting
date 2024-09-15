@@ -1,6 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion'
+import { HTMLMotionProps } from 'framer-motion'
 import RouteForm from './RouteForm'
 
 interface SidebarProps {
@@ -14,6 +15,7 @@ interface SidebarProps {
 export default function Sidebar({ isNavOpen, setSelectedRoute, startPort, endPort, setIsSelectingLocation }: SidebarProps) {
   return (
     <motion.div 
+      {...({} as HTMLMotionProps<"div">)}
       className={`bg-white dark:bg-gray-800 shadow-lg overflow-y-auto transition-all duration-300 ease-in-out ${
         isNavOpen ? 'w-96' : 'w-20'
       }`}
