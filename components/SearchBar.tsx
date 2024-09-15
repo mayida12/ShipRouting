@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from './ui/input'
@@ -10,39 +10,59 @@ interface SearchBarProps {
 
 export default function SearchBar({ onLocationSelect }: SearchBarProps) {
   const [searchQuery, setSearchQuery] = useState('')
+  const [suggestions, setSuggestions] = useState<any[]>([])
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`)
-      const data = await response.json()
-      if (data && data.length > 0) {
-        const { lon, lat } = data[0]
-        onLocationSelect([parseFloat(lon), parseFloat(lat)])
+  useEffect(() => {
+    if (searchQuery.length > 2) {
+      const fetchSuggestions = async () => {
+        try {
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`)
+          const data = await response.json()
+          setSuggestions(data)
+        } catch (error) {
+          console.error('Error fetching suggestions:', error)
+        }
       }
-    } catch (error) {
-      console.error('Error searching for location:', error)
+      fetchSuggestions()
+    } else {
+      setSuggestions([])
     }
+  }, [searchQuery])
+
+  const handleSelect = (lon: number, lat: number) => {
+    onLocationSelect([lon, lat])
+    setSearchQuery('')
+    setSuggestions([])
   }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
-      className="absolute top-4 left-1/2 transform -translate-x-1/2 z-10 w-96"
+      className="absolute top-4 left-24 z-10 w-96"
     >
-      <form onSubmit={handleSearch} className="flex">
+      <div className="relative">
         <Input
           type="text"
           placeholder="Search for a location..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-grow"
+          className="w-full"
         />
-        <Button type="submit" className="ml-2">
-          <Search size={20} />
-        </Button>
-      </form>
+        {suggestions.length > 0 && (
+          <ul className="absolute w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg max-h-60 overflow-auto">
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleSelect(parseFloat(suggestion.lon), parseFloat(suggestion.lat))}
+              >
+                {suggestion.display_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </motion.div>
   )
 }
