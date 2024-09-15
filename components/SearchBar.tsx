@@ -42,39 +42,44 @@ export default function SearchBar({ onLocationSelect, onSearch, onConfirmLocatio
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: -50 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="absolute top-4 left-24 z-10 w-96"
-    >
-      <div className="relative flex">
-        <Input
-          type="text"
-          placeholder="Search for a location..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full"
-        />
-        <Button onClick={handleSearch} className="ml-2">
-          <Search className="h-4 w-4" />
-        </Button>
-      </div>
-      {suggestions.length > 0 && (
-        <ul className="absolute w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg max-h-60 overflow-auto">
-          {suggestions.map((suggestion, index) => (
-            <li
-              key={index}
-              className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-              onClick={() => handleSelect(parseFloat(suggestion.lon), parseFloat(suggestion.lat))}
-            >
-              {suggestion.display_name}
-            </li>
-          ))}
-        </ul>
-      )}
-      <Button onClick={onConfirmLocation} className="mt-2 absolute bottom-4 right-4">
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: -50 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="absolute top-4 left-1/2 transform -translate-x-1/2 -ml-5 z-10 w-96"
+      >
+        <div className="relative flex">
+          <Input
+            type="text"
+            placeholder="Search for a location..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full"
+          />
+          <Button onClick={handleSearch} className="ml-2">
+            <Search className="h-4 w-4" />
+          </Button>
+        </div>
+        {suggestions.length > 0 && (
+          <ul className="absolute w-full bg-white dark:bg-gray-800 mt-1 rounded-md shadow-lg max-h-60 overflow-auto">
+            {suggestions.map((suggestion, index) => (
+              <li
+                key={index}
+                className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                onClick={() => handleSelect(parseFloat(suggestion.lon), parseFloat(suggestion.lat))}
+              >
+                {suggestion.display_name}
+              </li>
+            ))}
+          </ul>
+        )}
+      </motion.div>
+      <Button 
+        onClick={onConfirmLocation} 
+        className="fixed bottom-6 right-6 z-10 bg-emerald-500 hover:bg-emerald-600 text-white"
+      >
         Confirm Location
       </Button>
-    </motion.div>
+    </>
   )
 }

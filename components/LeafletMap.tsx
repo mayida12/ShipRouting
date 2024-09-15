@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap, useMapEvents } from 'react-leaflet'
+import { Anchor, Navigation } from 'lucide-react'
 
 interface LeafletMapProps {
   route: [number, number][] | null
@@ -47,14 +48,33 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   const mapRef = useRef<L.Map>(null)
 
   useEffect(() => {
-    // Fix for Leaflet icon issue
-    delete (L.Icon.Default.prototype as any)._getIconUrl
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: '/marker-icon-2x.png',
-      iconUrl: '/marker-icon.png',
-      shadowUrl: '/marker-shadow.png',
-    })
-  }, [])
+    // Custom icon setup
+    const createCustomIcon = (svgString: string) => {
+      return L.divIcon({
+        className: 'custom-icon',
+        html: `<div style="color: #10B981;">${svgString}</div>`,
+        iconSize: [24, 24],
+        iconAnchor: [12, 24],
+      })
+    }
+
+    const startIcon = createCustomIcon('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>')
+    const endIcon = createCustomIcon('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>')
+
+    // Update markers if they exist
+    if (mapRef.current) {
+      const map = mapRef.current
+      map.eachLayer((layer) => {
+        if (layer instanceof L.Marker) {
+          if (startPort && layer.getLatLng().equals(L.latLng(startPort[1], startPort[0]))) {
+            layer.setIcon(startIcon)
+          } else if (endPort && layer.getLatLng().equals(L.latLng(endPort[1], endPort[0]))) {
+            layer.setIcon(endIcon)
+          }
+        }
+      })
+    }
+  }, [startPort, endPort])
 
   return (
     <MapContainer
@@ -72,12 +92,28 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
         <Polyline positions={route} color="emerald" />
       )}
       {startPort && (
-        <Marker position={[startPort[1], startPort[0]]}>
+        <Marker 
+          position={[startPort[1], startPort[0]]} 
+          icon={L.divIcon({
+            className: 'custom-icon',
+            html: `<div style="color: #10B981;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+          })}
+        >
           <Popup>Start Port</Popup>
         </Marker>
       )}
       {endPort && (
-        <Marker position={[endPort[1], endPort[0]]}>
+        <Marker 
+          position={[endPort[1], endPort[0]]} 
+          icon={L.divIcon({
+            className: 'custom-icon',
+            html: `<div style="color: #10B981;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 24],
+          })}
+        >
           <Popup>End Port</Popup>
         </Marker>
       )}

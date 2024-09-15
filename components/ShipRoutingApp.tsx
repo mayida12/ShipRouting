@@ -28,10 +28,16 @@ export default function ShipRoutingApp() {
     setZoomToLocation(location)
   }
 
-  const handleSearch = (query: string) => {
-    // Implement search functionality here
-    // This could involve calling an API to get coordinates for the search query
-    // and then calling setZoomToLocation with the result
+  const handleSearch = async (query: string) => {
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`)
+      const data = await response.json()
+      if (data.coordinates) {
+        setZoomToLocation(data.coordinates)
+      }
+    } catch (error) {
+      console.error('Error searching for location:', error)
+    }
   }
 
   const handleConfirmLocation = () => {
@@ -50,7 +56,7 @@ export default function ShipRoutingApp() {
       <main className="flex-1 relative">
         <button
           onClick={() => setIsNavOpen(!isNavOpen)}
-          className="absolute top-4 left-4 z-10 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md"
+          className="fixed bottom-6 left-6 z-10 bg-white dark:bg-gray-800 p-2 rounded-full shadow-md"
         >
           {isNavOpen ? '←' : '→'}
         </button>

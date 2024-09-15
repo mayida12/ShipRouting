@@ -17,7 +17,7 @@ interface RouteFormProps {
 
 export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endPort, setIsSelectingLocation }: RouteFormProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
-  const [shipType, setShipType] = useState('cargo')
+  const [shipType, setShipType] = useState('')
   const [departureDateTime, setDepartureDateTime] = useState<Date | undefined>(new Date())
 
   // Set specific dimensions for a cargo ship
@@ -29,7 +29,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       setSessionId(id)
       const data = await getSessionData(id)
       if (data) {
-        setShipType(data.shipType || 'cargo')
+        setShipType(data.shipType || '')
         setDepartureDateTime(data.departureDateTime ? new Date(data.departureDateTime) : new Date())
       }
     }
@@ -50,6 +50,10 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!shipType) {
+      alert("Please select a ship type")
+      return
+    }
     try {
       const response = await fetch('/api/optimize_route', {
         method: 'POST',
@@ -79,7 +83,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         </Label>
         <Select onValueChange={setShipType} value={shipType}>
           <SelectTrigger id="shipType" className="w-full mt-1">
-            <SelectValue placeholder="Select ship type" />
+            <SelectValue placeholder="Select Ship Type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="cargo">Cargo Ship</SelectItem>
