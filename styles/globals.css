@@ -2,16 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --border: 220 13% 91%;
-  /* Add any other custom CSS variables here */
-}
-
-.dark {
-  --border: 240 3.7% 15.9%;
-  /* Add any dark mode overrides here */
-}
-
 html,
 body {
   padding: 0;
