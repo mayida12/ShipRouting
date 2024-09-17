@@ -22,8 +22,8 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [shipType, setShipType] = useState('')
   const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date(2024, 7, 25))
+  const [isLoading, setIsLoading] = useState(false)
 
-  // Wrap shipDimensions in useMemo
   const shipDimensions = useMemo(() => ({ length: 200, width: 32, draft: 13 }), [])
 
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
@@ -39,7 +39,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       const data = await getSessionData(id)
       if (data) {
         setShipType(data.shipType || '')
-        setDepartureDate(data.departureDateTime ? new Date(data.departureDateTime) : new Date())
+        setDepartureDate(data.departureDate ? new Date(data.departureDate) : new Date(2024, 7, 25))
       }
     }
     initSession()
@@ -50,9 +50,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       saveSessionData(sessionId, {
         shipType,
         shipDimensions,
-        startPort,
-        endPort,
-        departureDateTime: departureDate?.toISOString(),
+        startPort: startPort || undefined,
+        endPort: endPort || undefined,
+        departureDate: departureDate?.toISOString(),
       })
     }
   }, [sessionId, shipType, startPort, endPort, departureDate, shipDimensions])
@@ -64,31 +64,40 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       if (!shipType) errors.shipType = "Ship type is required"
       if (!startPort) errors.startPort = "Start port is required"
       if (!endPort) errors.endPort = "End port is required"
-      if (!departureDate) errors.departureDateTime = "Departure date and time is required"
+      if (!departureDate) errors.departureDate = "Departure date is required"
       setFormErrors(errors)
       return
     }
 
+    setIsLoading(true)
     try {
       const functions = getFunctions(app);
       const optimizeRoute = httpsCallable(functions, 'optimize_route');
       const result = await optimizeRoute({
         shipType,
-        shipDimensions,
-        startPort,
-        endPort,
-        departureDateTime: departureDate ? departureDate.toISOString() : null,
+        startPort: startPort || undefined,
+        endPort: endPort || undefined,
+        departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : undefined,
       });
-      const data = result.data as { optimal_path: [number, number][] };
-      setSelectedRoute(data.optimal_path);
+      const data = result.data as { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number };
+      setSelectedRoute(data.optimized_route);
+      
+      // Save the optimization results to the session
+      if (sessionId) {
+        await saveSessionData(sessionId, {
+          optimizedRoute: data.optimized_route,
+          distance: data.distance,
+          numSteps: data.num_steps,
+          avgStepDistance: data.avg_step_distance
+        });
+      }
     } catch (error) {
       console.error('Error optimizing route:', error);
       alert('Error optimizing route. Please try again.');
+    } finally {
+      setIsLoading(false)
     }
   }
-
-  const minDate = new Date('2024-08-25')
-  const maxDate = new Date('2024-08-29')
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -140,9 +149,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         <Button 
           type="submit" 
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-white"
-          disabled={!isFormValid()}
+          disabled={!isFormValid() || isLoading}
         >
-          Calculate Optimal Route
+          {isLoading ? 'Optimizing...' : 'Calculate Optimal Route'}
         </Button>
       </motion.div>
 

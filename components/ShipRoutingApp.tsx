@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import SearchBar from './SearchBar'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from '../lib/firebase'
+import { getSessionData, deleteSession } from '../lib/session'
 
 const MapComponent = dynamic(() => import('./MapComponent'), {
   ssr: false,
@@ -20,6 +21,31 @@ export default function ShipRoutingApp() {
   const [isSelectingLocation, setIsSelectingLocation] = useState<'start' | 'end' | null>(null)
   const [showWeather, setShowWeather] = useState(false)
   const [zoomToLocation, setZoomToLocation] = useState<[number, number] | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const loadSession = async () => {
+      const id = localStorage.getItem('sessionId')
+      if (id) {
+        setSessionId(id)
+        const data = await getSessionData(id)
+        if (data) {
+          setStartPort(data.startPort || null)
+          setEndPort(data.endPort || null)
+          setSelectedRoute(data.optimizedRoute || null)
+        }
+      }
+    }
+    loadSession()
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (sessionId) {
+        deleteSession(sessionId)
+      }
+    }
+  }, [sessionId])
 
   const handleLocationSelect = (location: [number, number]) => {
     if (isSelectingLocation === 'start') {

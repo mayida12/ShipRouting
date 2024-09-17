@@ -1,1 +1,16 @@
-firebase_functions~=0.1.0
+firebase-admin
+firebase-functions
+netCDF4
+numpy
+scipy
+numba
+requests
+google-cloud-storage
+google-cloud-firestore
+Flask
+functions-framework
+PyYAML
+typing-extensions
+cloudevents==1.9.0
+flask-cors
+google-events
