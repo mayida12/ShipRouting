@@ -1,0 +1,17 @@
+[debug] [2024-09-17T11:01:31.156Z] ----------------------------------------------------------------------
+[debug] [2024-09-17T11:01:31.160Z] Command:       C:\Program Files\nodejs\node.exe D:\nodejs\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2024-09-17T11:01:31.161Z] CLI Version:   13.15.2
+[debug] [2024-09-17T11:01:31.161Z] Platform:      win32
+[debug] [2024-09-17T11:01:31.161Z] Node Version:  v18.20.4
+[debug] [2024-09-17T11:01:31.162Z] Time:          Tue Sep 17 2024 16:31:31 GMT+0530 (India Standard Time)
+[debug] [2024-09-17T11:01:31.162Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-09-17T11:01:31.226Z] Field ".functions" in "firebase.json" is possibly invalid: should be object
+[debug] [2024-09-17T11:01:31.226Z] Object ".functions[0]" in "firebase.json" has unknown property: {"additionalProperty":"httpsTrigger"}
+[debug] [2024-09-17T11:01:31.227Z] Field ".functions" in "firebase.json" is possibly invalid: should match some schema in anyOf
+[debug] [2024-09-17T11:01:31.232Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-09-17T11:01:31.232Z] > authorizing via signed-in user (manwaarullahb@gmail.com)
+[debug] [2024-09-17T11:01:31.232Z] [iam] checking project ship-routing-app for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2024-09-17T11:01:31.234Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/ship-routing-app:testIamPermissions [none]
+[debug] [2024-09-17T11:01:31.234Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/ship-routing-app:testIamPermissions x-goog-quota-user=projects/ship-routing-app
+[debug] [2024-09-17T11:01:31.235Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ship-routing-app:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}

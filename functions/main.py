@@ -18,9 +18,10 @@ app = Flask(__name__)
 
 # CORS headers
 def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Origin'] = 'https://ship-routing-app.web.app'
     response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
 # Constants (scaling factors for ship speeds)
@@ -132,7 +133,7 @@ def find_nearest_index(lon_array, lat_array, lon_val, lat_val):
     lat_idx = np.abs(lat_array - lat_val).argmin()
     return lon_idx, lat_idx
 
-@https_fn.on_request()
+@https_fn.on_request(cors=True)
 def search(req: https_fn.Request) -> https_fn.Response:
     if req.method == 'OPTIONS':
         return add_cors_headers(jsonify({}))
@@ -152,7 +153,7 @@ def search(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         return add_cors_headers(jsonify({"coordinates": None, "error": str(e)})), 500
 
-@https_fn.on_request()
+@https_fn.on_request(cors=True)
 def optimize_route(req: https_fn.Request) -> https_fn.Response:
     if req.method == 'OPTIONS':
         return add_cors_headers(jsonify({}))
@@ -227,7 +228,7 @@ def optimize_route(req: https_fn.Request) -> https_fn.Response:
     except Exception as e:
         return add_cors_headers(jsonify({"error": str(e)})), 500
 
-@https_fn.on_request()
+@https_fn.on_request(cors=True)
 def create_session(req: https_fn.Request) -> https_fn.Response:
     if req.method == 'OPTIONS':
         return add_cors_headers(jsonify({}))
@@ -239,11 +240,12 @@ def create_session(req: https_fn.Request) -> https_fn.Response:
             'created_at': firestore.SERVER_TIMESTAMP,
             'status': 'created'
         })
-        return add_cors_headers(jsonify({"session_id": session_ref.id}))
+        response = jsonify({"session_id": session_ref.id})
+        return add_cors_headers(response)
     except Exception as e:
         return add_cors_headers(jsonify({"error": str(e)})), 500
 
-@https_fn.on_request()
+@https_fn.on_request(cors=True)
 def update_session(req: https_fn.Request) -> https_fn.Response:
     if req.method == 'OPTIONS':
         return add_cors_headers(jsonify({}))
@@ -256,11 +258,12 @@ def update_session(req: https_fn.Request) -> https_fn.Response:
         db = firestore.client()
         session_ref = db.collection('sessions').document(data['session_id'])
         session_ref.update(data)
-        return add_cors_headers(jsonify({"status": "updated"}))
+        response = jsonify({"status": "updated"})
+        return add_cors_headers(response)
     except Exception as e:
         return add_cors_headers(jsonify({"error": str(e)})), 500
 
-@https_fn.on_request()
+@https_fn.on_request(cors=True)
 def get_session(req: https_fn.Request) -> https_fn.Response:
     if req.method == 'OPTIONS':
         return add_cors_headers(jsonify({}))
@@ -273,11 +276,14 @@ def get_session(req: https_fn.Request) -> https_fn.Response:
         db = firestore.client()
         session_ref = db.collection('sessions').document(session_id)
         session_data = session_ref.get().to_dict()
-        return add_cors_headers(jsonify(session_data))
+        if session_data is None:
+            return add_cors_headers(jsonify({"error": "Session not found"})), 404
+        response = jsonify(session_data)
+        return add_cors_headers(response)
     except Exception as e:
         return add_cors_headers(jsonify({"error": str(e)})), 500
 
-@https_fn.on_request()
+@https_fn.on_request(cors=True)
 def delete_session(req: https_fn.Request) -> https_fn.Response:
     if req.method == 'OPTIONS':
         return add_cors_headers(jsonify({}))
@@ -289,6 +295,7 @@ def delete_session(req: https_fn.Request) -> https_fn.Response:
     try:
         db = firestore.client()
         db.collection('sessions').document(session_id).delete()
-        return add_cors_headers(jsonify({"status": "deleted"}))
+        response = jsonify({"status": "deleted"})
+        return add_cors_headers(response)
     except Exception as e:
         return add_cors_headers(jsonify({"error": str(e)})), 500

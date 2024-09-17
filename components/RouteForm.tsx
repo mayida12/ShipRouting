@@ -5,7 +5,7 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { DateTimePicker } from "./ui/date-time-picker"
-import { createOrGetSession, saveSessionData, getSessionData } from '../lib/session'
+import { createOrGetSession, saveSessionData, getSessionData, SessionData, clearTempSessionData } from '../lib/session'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from '../lib/firebase'
 import { addDays, format } from 'date-fns'
@@ -34,15 +34,23 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
 
   useEffect(() => {
     async function initSession() {
-      const id = await createOrGetSession()
-      setSessionId(id)
-      const data = await getSessionData(id)
-      if (data) {
-        setShipType(data.shipType || '')
-        setDepartureDate(data.departureDate ? new Date(data.departureDate) : new Date(2024, 7, 25))
+      try {
+        const id = await createOrGetSession()
+        setSessionId(id)
+        const data = await getSessionData(id)
+        if (data) {
+          setShipType(data.shipType || '')
+          setDepartureDate(data.departureDate ? new Date(data.departureDate) : new Date(2024, 7, 25))
+        }
+      } catch (error) {
+        console.error("Error initializing session:", error)
+        // Handle error (e.g., show error message to user)
       }
     }
     initSession()
+    return () => {
+      clearTempSessionData() // Clear temporary data when component unmounts
+    }
   }, [])
 
   useEffect(() => {
@@ -53,6 +61,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         startPort: startPort || undefined,
         endPort: endPort || undefined,
         departureDate: departureDate?.toISOString(),
+      }).catch(error => {
+        console.error("Error saving session data:", error)
+        // Handle error (e.g., show error message to user)
       })
     }
   }, [sessionId, shipType, startPort, endPort, departureDate, shipDimensions])
@@ -72,14 +83,14 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
     setIsLoading(true)
     try {
       const functions = getFunctions(app);
-      const optimizeRoute = httpsCallable(functions, 'optimize_route');
+      const optimizeRoute = httpsCallable<any, { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number }>(functions, 'optimize_route');
       const result = await optimizeRoute({
         shipType,
         startPort: startPort || undefined,
         endPort: endPort || undefined,
         departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : undefined,
       });
-      const data = result.data as { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number };
+      const data = result.data;
       setSelectedRoute(data.optimized_route);
       
       // Save the optimization results to the session

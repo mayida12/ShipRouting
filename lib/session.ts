@@ -1,10 +1,7 @@
-import { db } from './firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { v4 as uuidv4 } from 'uuid';
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from './firebase';
 
-interface SessionData {
+export interface SessionData {
   shipType?: string;
   departureDate?: string;
   startPort?: [number, number] | null;
@@ -20,34 +17,76 @@ interface SessionData {
   };
 }
 
+// Implement temporary memory
+let tempSessionData: SessionData = {};
+
 export async function createOrGetSession(): Promise<string> {
   let sessionId = localStorage.getItem('sessionId');
   if (!sessionId) {
     const functions = getFunctions(app);
     const createSession = httpsCallable<any, { session_id: string }>(functions, 'create_session');
-    const result = await createSession();
-    sessionId = result.data.session_id;
-    localStorage.setItem('sessionId', sessionId);
+    try {
+      const result = await createSession();
+      sessionId = result.data.session_id;
+      if (sessionId) {
+        localStorage.setItem('sessionId', sessionId);
+      } else {
+        throw new Error("Failed to create session");
+      }
+    } catch (error) {
+      console.error("Error creating session:", error);
+      throw error;
+    }
   }
   return sessionId;
 }
 
-export async function saveSessionData(sessionId: string, data: SessionData): Promise<void> {
+export async function saveSessionData(sessionId: string, data: Partial<SessionData>): Promise<void> {
   const functions = getFunctions(app);
-  const updateSession = httpsCallable(functions, 'update_session');
-  await updateSession({ session_id: sessionId, ...data });
+  const updateSession = httpsCallable<{ session_id: string } & Partial<SessionData>, void>(functions, 'update_session');
+  try {
+    await updateSession({ session_id: sessionId, ...data });
+    // Update temporary memory
+    tempSessionData = { ...tempSessionData, ...data };
+  } catch (error) {
+    console.error("Error saving session data:", error);
+    throw error;
+  }
 }
 
 export async function getSessionData(sessionId: string): Promise<SessionData> {
+  // First, check temporary memory
+  if (Object.keys(tempSessionData).length > 0) {
+    return tempSessionData;
+  }
+
   const functions = getFunctions(app);
   const getSession = httpsCallable<{ session_id: string }, SessionData>(functions, 'get_session');
-  const result = await getSession({ session_id: sessionId });
-  return result.data;
+  try {
+    const result = await getSession({ session_id: sessionId });
+    // Update temporary memory
+    tempSessionData = result.data;
+    return result.data;
+  } catch (error) {
+    console.error("Error getting session data:", error);
+    throw error;
+  }
 }
 
 export async function deleteSession(sessionId: string): Promise<void> {
   const functions = getFunctions(app);
-  const deleteSessionFunc = httpsCallable(functions, 'delete_session');
-  await deleteSessionFunc({ session_id: sessionId });
-  localStorage.removeItem('sessionId');
+  const deleteSessionFunc = httpsCallable<{ session_id: string }, void>(functions, 'delete_session');
+  try {
+    await deleteSessionFunc({ session_id: sessionId });
+    localStorage.removeItem('sessionId');
+    // Clear temporary memory
+    tempSessionData = {};
+  } catch (error) {
+    console.error("Error deleting session:", error);
+    throw error;
+  }
+}
+
+export function clearTempSessionData(): void {
+  tempSessionData = {};
 }
