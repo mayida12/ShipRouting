@@ -16,7 +16,13 @@ from flask_cors import CORS
 initialize_app()
 
 app = Flask(__name__)
-CORS(app)
+
+# Update CORS configuration
+CORS(app, resources={r"/*": {"origins": [
+    "https://ship-routing-app.web.app",
+    "https://ship-routing-app.firebaseapp.com",
+    "http://localhost:3000"
+]}})
 
 # Constants (scaling factors for ship speeds)
 SPEED_SCALING = {
@@ -253,7 +259,9 @@ def get_session(req: https_fn.Request) -> https_fn.Response:
         db = firestore.client()
         session_ref = db.collection('sessions').document(session_id)
         session_data = session_ref.get().to_dict()
-        return jsonify(session_data)
+        response = jsonify(session_data)
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        return response
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
