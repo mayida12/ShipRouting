@@ -11,18 +11,17 @@ from scipy.interpolate import NearestNDInterpolator
 from typing import Any, Dict
 import requests
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 
 initialize_app()
 
 app = Flask(__name__)
 
-# Update CORS configuration
-CORS(app, resources={r"/*": {"origins": [
-    "https://ship-routing-app.web.app",
-    "https://ship-routing-app.firebaseapp.com",
-    "http://localhost:3000"
-]}})
+# CORS headers
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    return response
 
 # Constants (scaling factors for ship speeds)
 SPEED_SCALING = {
@@ -135,26 +134,32 @@ def find_nearest_index(lon_array, lat_array, lon_val, lat_val):
 
 @https_fn.on_request()
 def search(req: https_fn.Request) -> https_fn.Response:
+    if req.method == 'OPTIONS':
+        return add_cors_headers(jsonify({}))
+    
     query = req.json.get('query')
     if not query:
-        return jsonify({"error": "No query provided"}), 400
+        return add_cors_headers(jsonify({"error": "No query provided"})), 400
 
     try:
         response = requests.get(f"https://nominatim.openstreetmap.org/search?format=json&q={query}")
         data = response.json()
         if data:
             coordinates = [float(data[0]['lon']), float(data[0]['lat'])]
-            return jsonify({"coordinates": coordinates})
+            return add_cors_headers(jsonify({"coordinates": coordinates}))
         else:
-            return jsonify({"coordinates": None, "error": "Location not found"}), 404
+            return add_cors_headers(jsonify({"coordinates": None, "error": "Location not found"})), 404
     except Exception as e:
-        return jsonify({"coordinates": None, "error": str(e)}), 500
+        return add_cors_headers(jsonify({"coordinates": None, "error": str(e)})), 500
 
 @https_fn.on_request()
 def optimize_route(req: https_fn.Request) -> https_fn.Response:
+    if req.method == 'OPTIONS':
+        return add_cors_headers(jsonify({}))
+    
     data = req.json
     if not data:
-        return jsonify({"error": "No data provided"}), 400
+        return add_cors_headers(jsonify({"error": "No data provided"})), 400
 
     ship_type = data.get('shipType')
     start_port = data.get('startPort')
@@ -162,7 +167,7 @@ def optimize_route(req: https_fn.Request) -> https_fn.Response:
     departure_date = data.get('departureDate')
 
     if not all([ship_type, start_port, end_port, departure_date]):
-        return jsonify({"error": "Missing required fields"}), 400
+        return add_cors_headers(jsonify({"error": "Missing required fields"})), 400
 
     try:
         # Download necessary files from Cloud Storage
@@ -213,17 +218,20 @@ def optimize_route(req: https_fn.Request) -> https_fn.Response:
             i, j = divmod(node, len(lat))
             optimized_route.append([float(lon[i]), float(lat[j])])
 
-        return jsonify({
+        return add_cors_headers(jsonify({
             "distance": float(distance),
             "optimized_route": optimized_route,
             "num_steps": len(path),
             "avg_step_distance": float(distance / (len(path) - 1))
-        })
+        }))
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return add_cors_headers(jsonify({"error": str(e)})), 500
 
 @https_fn.on_request()
 def create_session(req: https_fn.Request) -> https_fn.Response:
+    if req.method == 'OPTIONS':
+        return add_cors_headers(jsonify({}))
+    
     try:
         db = firestore.client()
         session_ref = db.collection('sessions').document()
@@ -231,49 +239,56 @@ def create_session(req: https_fn.Request) -> https_fn.Response:
             'created_at': firestore.SERVER_TIMESTAMP,
             'status': 'created'
         })
-        return jsonify({"session_id": session_ref.id})
+        return add_cors_headers(jsonify({"session_id": session_ref.id}))
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return add_cors_headers(jsonify({"error": str(e)})), 500
 
 @https_fn.on_request()
 def update_session(req: https_fn.Request) -> https_fn.Response:
+    if req.method == 'OPTIONS':
+        return add_cors_headers(jsonify({}))
+    
     data = req.json
     if not data or 'session_id' not in data:
-        return jsonify({"error": "No session_id provided"}), 400
+        return add_cors_headers(jsonify({"error": "No session_id provided"})), 400
 
     try:
         db = firestore.client()
         session_ref = db.collection('sessions').document(data['session_id'])
         session_ref.update(data)
-        return jsonify({"status": "updated"})
+        return add_cors_headers(jsonify({"status": "updated"}))
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return add_cors_headers(jsonify({"error": str(e)})), 500
 
 @https_fn.on_request()
 def get_session(req: https_fn.Request) -> https_fn.Response:
+    if req.method == 'OPTIONS':
+        return add_cors_headers(jsonify({}))
+    
     session_id = req.args.get('session_id')
     if not session_id:
-        return jsonify({"error": "No session_id provided"}), 400
+        return add_cors_headers(jsonify({"error": "No session_id provided"})), 400
 
     try:
         db = firestore.client()
         session_ref = db.collection('sessions').document(session_id)
         session_data = session_ref.get().to_dict()
-        response = jsonify(session_data)
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        return response
+        return add_cors_headers(jsonify(session_data))
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return add_cors_headers(jsonify({"error": str(e)})), 500
 
 @https_fn.on_request()
 def delete_session(req: https_fn.Request) -> https_fn.Response:
+    if req.method == 'OPTIONS':
+        return add_cors_headers(jsonify({}))
+    
     session_id = req.args.get('session_id')
     if not session_id:
-        return jsonify({"error": "No session_id provided"}), 400
+        return add_cors_headers(jsonify({"error": "No session_id provided"})), 400
 
     try:
         db = firestore.client()
         db.collection('sessions').document(session_id).delete()
-        return jsonify({"status": "deleted"})
+        return add_cors_headers(jsonify({"status": "deleted"}))
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return add_cors_headers(jsonify({"error": str(e)})), 500
