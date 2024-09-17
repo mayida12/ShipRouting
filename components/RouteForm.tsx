@@ -86,8 +86,8 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       const optimizeRoute = httpsCallable<any, { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number }>(functions, 'optimize_route');
       const result = await optimizeRoute({
         shipType,
-        startPort: startPort || undefined,
-        endPort: endPort || undefined,
+        startPort,
+        endPort,
         departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : undefined,
       });
       const data = result.data;

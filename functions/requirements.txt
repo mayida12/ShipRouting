@@ -1,11 +1,10 @@
 firebase-admin
 firebase-functions
+flask
+flask-cors
 netCDF4
 numpy
 scipy
 numba
 requests
 google-cloud-storage
-google-cloud-firestore
-Flask
-flask-cors
