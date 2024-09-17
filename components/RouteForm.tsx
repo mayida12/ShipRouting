@@ -42,14 +42,14 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
           setShipType(data.shipType || '')
           setDepartureDate(data.departureDate ? new Date(data.departureDate) : new Date(2024, 7, 25))
         }
-      } catch (error) {
-        console.error("Error initializing session:", error)
-        // Handle error (e.g., show error message to user)
+      } catch (error: any) {
+        console.error("Error initializing session:", error.message, error.details)
+        alert(`Error initializing session: ${error.message}. Please try refreshing the page.`)
       }
     }
     initSession()
     return () => {
-      clearTempSessionData() // Clear temporary data when component unmounts
+      clearTempSessionData()
     }
   }, [])
 
@@ -62,8 +62,8 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         endPort: endPort || undefined,
         departureDate: departureDate?.toISOString(),
       }).catch(error => {
-        console.error("Error saving session data:", error)
-        // Handle error (e.g., show error message to user)
+        console.error("Error saving session data:", error.message, error.details)
+        alert(`Error saving session data: ${error.message}. Your progress may not be saved.`)
       })
     }
   }, [sessionId, shipType, startPort, endPort, departureDate, shipDimensions])
@@ -93,7 +93,6 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       const data = result.data;
       setSelectedRoute(data.optimized_route);
       
-      // Save the optimization results to the session
       if (sessionId) {
         await saveSessionData(sessionId, {
           optimizedRoute: data.optimized_route,
@@ -102,9 +101,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
           avgStepDistance: data.avg_step_distance
         });
       }
-    } catch (error) {
-      console.error('Error optimizing route:', error);
-      alert('Error optimizing route. Please try again.');
+    } catch (error: any) {
+      console.error('Error optimizing route:', error.message, error.details);
+      alert(`Error optimizing route: ${error.message}. Please try again.`);
     } finally {
       setIsLoading(false)
     }

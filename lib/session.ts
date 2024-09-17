@@ -1,4 +1,4 @@
-import { getFunctions, httpsCallable } from "firebase/functions";
+import { getFunctions, httpsCallable, HttpsCallableResult } from "firebase/functions";
 import { app } from './firebase';
 
 export interface SessionData {
@@ -26,15 +26,15 @@ export async function createOrGetSession(): Promise<string> {
     const functions = getFunctions(app);
     const createSession = httpsCallable<any, { session_id: string }>(functions, 'create_session');
     try {
-      const result = await createSession();
+      const result: HttpsCallableResult<{ session_id: string }> = await createSession();
       sessionId = result.data.session_id;
       if (sessionId) {
         localStorage.setItem('sessionId', sessionId);
       } else {
-        throw new Error("Failed to create session");
+        throw new Error("Failed to create session: No session_id returned");
       }
-    } catch (error) {
-      console.error("Error creating session:", error);
+    } catch (error: any) {
+      console.error("Error creating session:", error.message, error.details);
       throw error;
     }
   }
@@ -48,8 +48,8 @@ export async function saveSessionData(sessionId: string, data: Partial<SessionDa
     await updateSession({ session_id: sessionId, ...data });
     // Update temporary memory
     tempSessionData = { ...tempSessionData, ...data };
-  } catch (error) {
-    console.error("Error saving session data:", error);
+  } catch (error: any) {
+    console.error("Error saving session data:", error.message, error.details);
     throw error;
   }
 }
@@ -63,12 +63,12 @@ export async function getSessionData(sessionId: string): Promise<SessionData> {
   const functions = getFunctions(app);
   const getSession = httpsCallable<{ session_id: string }, SessionData>(functions, 'get_session');
   try {
-    const result = await getSession({ session_id: sessionId });
+    const result: HttpsCallableResult<SessionData> = await getSession({ session_id: sessionId });
     // Update temporary memory
     tempSessionData = result.data;
     return result.data;
-  } catch (error) {
-    console.error("Error getting session data:", error);
+  } catch (error: any) {
+    console.error("Error getting session data:", error.message, error.details);
     throw error;
   }
 }
