@@ -167,10 +167,10 @@ def optimize_route(req: https_fn.Request) -> https_fn.Response:
 
         try:
             # Download necessary files from Cloud Storage
-            bucket = storage.bucket()
-            wave_blob = bucket.blob(f'datasets/{departure_date}/Wavewatch_III.nc')
-            roms_blob = bucket.blob(f'datasets/{departure_date}/ROMS.nc')
-            salt_blob = bucket.blob(f'datasets/{departure_date}/salt.nc')
+            bucket = storage.bucket('ship-routing-app.appspot.com')
+            wave_blob = bucket.blob('Wavewatch_III_25_28_2024_to_03_09_2024.nc')
+            roms_blob = bucket.blob('ROMS_25_08_2024_to_03_09_2024.nc')
+            salt_blob = bucket.blob('salt_25_08_to_03_09_2024.nc')
 
             with tempfile.TemporaryDirectory() as tmpdir:
                 wave_file = os.path.join(tmpdir, 'wave.nc')
