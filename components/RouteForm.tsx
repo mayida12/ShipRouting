@@ -21,7 +21,7 @@ interface RouteFormProps {
 export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endPort, setIsSelectingLocation }: RouteFormProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [shipType, setShipType] = useState('')
-  const [departureDateTime, setDepartureDateTime] = useState<Date | undefined>(new Date(2024, 7, 25))
+  const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date(2024, 7, 25))
 
   // Wrap shipDimensions in useMemo
   const shipDimensions = useMemo(() => ({ length: 200, width: 32, draft: 13 }), [])
@@ -29,7 +29,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
 
   const isFormValid = () => {
-    return shipType && startPort && endPort && departureDateTime
+    return shipType && startPort && endPort && departureDate
   }
 
   useEffect(() => {
@@ -39,7 +39,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       const data = await getSessionData(id)
       if (data) {
         setShipType(data.shipType || '')
-        setDepartureDateTime(data.departureDateTime ? new Date(data.departureDateTime) : new Date())
+        setDepartureDate(data.departureDateTime ? new Date(data.departureDateTime) : new Date())
       }
     }
     initSession()
@@ -52,10 +52,10 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         shipDimensions,
         startPort,
         endPort,
-        departureDateTime: departureDateTime?.toISOString(),
+        departureDateTime: departureDate?.toISOString(),
       })
     }
-  }, [sessionId, shipType, startPort, endPort, departureDateTime, shipDimensions])
+  }, [sessionId, shipType, startPort, endPort, departureDate, shipDimensions])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,7 +64,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       if (!shipType) errors.shipType = "Ship type is required"
       if (!startPort) errors.startPort = "Start port is required"
       if (!endPort) errors.endPort = "End port is required"
-      if (!departureDateTime) errors.departureDateTime = "Departure date and time is required"
+      if (!departureDate) errors.departureDateTime = "Departure date and time is required"
       setFormErrors(errors)
       return
     }
@@ -77,7 +77,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         shipDimensions,
         startPort,
         endPort,
-        departureDateTime: departureDateTime ? departureDateTime.toISOString() : null,
+        departureDateTime: departureDate ? departureDate.toISOString() : null,
       });
       const data = result.data as { optimal_path: [number, number][] };
       setSelectedRoute(data.optimal_path);
@@ -127,12 +127,12 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
-        <Label htmlFor="departureDateTime" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-          <Calendar className="mr-2" /> Departure Date & Time
+        <Label htmlFor="departureDate" className="text-lg font-semibold text-gray-700 dark:text-gray-300 flex items-center">
+          <Calendar className="mr-2" /> Departure Date
         </Label>
         <DateTimePicker
-          date={departureDateTime}
-          setDate={(newDate) => setDepartureDateTime(newDate)}
+          date={departureDate}
+          setDate={(newDate) => setDepartureDate(newDate)}
         />
       </motion.div>
 

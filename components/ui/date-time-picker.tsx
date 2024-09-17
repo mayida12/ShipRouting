@@ -30,10 +30,6 @@ const availableDates = [
 function DatePickerDemo({ setDate, date }: { setDate: (date: Date) => void, date: Date | undefined }) {
   const handleDateChange = (value: string) => {
     const newDate = new Date(value)
-    if (date) {
-      newDate.setHours(date.getHours())
-      newDate.setMinutes(date.getMinutes())
-    }
     setDate(newDate)
   }
 
@@ -53,52 +49,6 @@ function DatePickerDemo({ setDate, date }: { setDate: (date: Date) => void, date
   )
 }
 
-function TimePickerDemo({ setDate, date }: { setDate: (date: Date) => void, date: Date | undefined }) {
-  const minuteOptions = Array.from({ length: 60 }, (_, i) => i.toString().padStart(2, '0'))
-  const hourOptions = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'))
-
-  const handleTimeChange = (type: 'hour' | 'minute', value: string) => {
-    if (date) {
-      const newDate = new Date(date)
-      if (type === 'hour') {
-        newDate.setHours(parseInt(value))
-      } else {
-        newDate.setMinutes(parseInt(value))
-      }
-      setDate(newDate)
-    }
-  }
-
-  return (
-    <div className="flex gap-2">
-      <Select onValueChange={(value) => handleTimeChange('hour', value)} value={date?.getHours().toString().padStart(2, '0')}>
-        <SelectTrigger className="w-[110px]">
-          <SelectValue placeholder="Hour" />
-        </SelectTrigger>
-        <SelectContent>
-          {hourOptions.map((hour) => (
-            <SelectItem key={hour} value={hour}>
-              {hour}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Select onValueChange={(value) => handleTimeChange('minute', value)} value={date?.getMinutes().toString().padStart(2, '0')}>
-        <SelectTrigger className="w-[110px]">
-          <SelectValue placeholder="Minute" />
-        </SelectTrigger>
-        <SelectContent>
-          {minuteOptions.map((minute) => (
-            <SelectItem key={minute} value={minute}>
-              {minute}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  )
-}
-
 export function DateTimePicker({
   date,
   setDate,
@@ -106,14 +56,14 @@ export function DateTimePicker({
   date: Date | undefined
   setDate: (date: Date | undefined) => void
 }) {
-  const [selectedDateTime, setSelectedDateTime] = React.useState<Date | undefined>(date)
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date)
 
   React.useEffect(() => {
-    setSelectedDateTime(date)
+    setSelectedDate(date)
   }, [date])
 
-  const handleDateTimeChange = (newDate: Date) => {
-    setSelectedDateTime(newDate)
+  const handleDateChange = (newDate: Date) => {
+    setSelectedDate(newDate)
     setDate(newDate)
   }
 
@@ -128,20 +78,14 @@ export function DateTimePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "MMMM d, yyyy HH:mm") : <span>Pick a date and time</span>}
+          {date ? format(date, "MMMM d, yyyy") : <span>Pick a date</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-4">
-        <div className="space-y-4">
-          <DatePickerDemo 
-            setDate={handleDateTimeChange}
-            date={selectedDateTime}
-          />
-          <TimePickerDemo 
-            setDate={handleDateTimeChange}
-            date={selectedDateTime}
-          />
-        </div>
+        <DatePickerDemo 
+          setDate={handleDateChange}
+          date={selectedDate}
+        />
       </PopoverContent>
     </Popover>
   )
