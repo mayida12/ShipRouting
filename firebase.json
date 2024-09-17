@@ -17,7 +17,16 @@
         "firebase-debug.*.log",
         "*.local"
       ],
-      "runtime": "python310"
+      "runtime": "python310",
+      "httpsTrigger": {
+      "cors": [
+        {
+          "origin": ["https://ship-routing-app.web.app", "http://localhost:3000"],
+          "method": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+          "maxAgeSeconds": 3600
+        }
+      ]
+    }
     }
   ],
   "hosting": {

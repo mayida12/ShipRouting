@@ -11,8 +11,13 @@ from numba import njit
 from scipy.interpolate import NearestNDInterpolator
 from typing import Any, Dict
 import requests
+from flask import Flask, request
+from flask_cors import CORS
 
 initialize_app()
+
+app = Flask(__name__)
+CORS(app)
 
 # Constants (scaling factors for ship speeds)
 SPEED_SCALING = {
@@ -125,143 +130,167 @@ def find_nearest_index(lon_array, lat_array, lon_val, lat_val):
 
 @https_fn.on_request()
 def search(req: https_fn.Request) -> https_fn.Response:
-    query = req.json.get('query')
-    if not query:
-        return https_fn.Response("No query provided", status=400)
+    @CORS(app, origins=["https://ship-routing-app.web.app", "http://localhost:3000"])
+    def wrapped_function():
+        query = req.json.get('query')
+        if not query:
+            return https_fn.Response("No query provided", status=400)
 
-    try:
-        response = requests.get(f"https://nominatim.openstreetmap.org/search?format=json&q={query}")
-        data = response.json()
-        if data:
-            coordinates = [float(data[0]['lon']), float(data[0]['lat'])]
-            return https_fn.Response(json={"coordinates": coordinates})
-        else:
-            return https_fn.Response(json={"coordinates": None, "error": "Location not found"}, status=404)
-    except Exception as e:
-        return https_fn.Response(json={"coordinates": None, "error": str(e)}, status=500)
+        try:
+            response = requests.get(f"https://nominatim.openstreetmap.org/search?format=json&q={query}")
+            data = response.json()
+            if data:
+                coordinates = [float(data[0]['lon']), float(data[0]['lat'])]
+                return https_fn.Response(json={"coordinates": coordinates})
+            else:
+                return https_fn.Response(json={"coordinates": None, "error": "Location not found"}, status=404)
+        except Exception as e:
+            return https_fn.Response(json={"coordinates": None, "error": str(e)}, status=500)
+    
+    return wrapped_function()
 
 @https_fn.on_request()
 def optimize_route(req: https_fn.Request) -> https_fn.Response:
-    data = req.json
-    if not data:
-        return https_fn.Response("No data provided", status=400)
+    @CORS(app, origins=["https://ship-routing-app.web.app", "http://localhost:3000"])
+    def wrapped_function():
+        data = req.json
+        if not data:
+            return https_fn.Response("No data provided", status=400)
 
-    ship_type = data.get('shipType')
-    start_port = data.get('startPort')
-    end_port = data.get('endPort')
-    departure_date = data.get('departureDate')
+        ship_type = data.get('shipType')
+        start_port = data.get('startPort')
+        end_port = data.get('endPort')
+        departure_date = data.get('departureDate')
 
-    if not all([ship_type, start_port, end_port, departure_date]):
-        return https_fn.Response("Missing required fields", status=400)
+        if not all([ship_type, start_port, end_port, departure_date]):
+            return https_fn.Response("Missing required fields", status=400)
 
-    try:
-        # Download necessary files from Cloud Storage
-        bucket = storage.bucket()
-        wave_blob = bucket.blob(f'datasets/{departure_date}/Wavewatch_III.nc')
-        roms_blob = bucket.blob(f'datasets/{departure_date}/ROMS.nc')
-        salt_blob = bucket.blob(f'datasets/{departure_date}/salt.nc')
+        try:
+            # Download necessary files from Cloud Storage
+            bucket = storage.bucket()
+            wave_blob = bucket.blob(f'datasets/{departure_date}/Wavewatch_III.nc')
+            roms_blob = bucket.blob(f'datasets/{departure_date}/ROMS.nc')
+            salt_blob = bucket.blob(f'datasets/{departure_date}/salt.nc')
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            wave_file = os.path.join(tmpdir, 'wave.nc')
-            roms_file = os.path.join(tmpdir, 'roms.nc')
-            salt_file = os.path.join(tmpdir, 'salt.nc')
+            with tempfile.TemporaryDirectory() as tmpdir:
+                wave_file = os.path.join(tmpdir, 'wave.nc')
+                roms_file = os.path.join(tmpdir, 'roms.nc')
+                salt_file = os.path.join(tmpdir, 'salt.nc')
 
-            wave_blob.download_to_filename(wave_file)
-            roms_blob.download_to_filename(roms_file)
-            salt_blob.download_to_filename(salt_file)
+                wave_blob.download_to_filename(wave_file)
+                roms_blob.download_to_filename(roms_file)
+                salt_blob.download_to_filename(salt_file)
 
-            lon, lat, swh, ws, sst, usurf, vsurf, salt = interpolate_data(wave_file, roms_file, salt_file)
+                lon, lat, swh, ws, sst, usurf, vsurf, salt = interpolate_data(wave_file, roms_file, salt_file)
 
-        # Convert any remaining masked arrays to regular arrays
-        lon = np.array(lon)
-        lat = np.array(lat)
-        swh = np.array(swh)
-        ws = np.array(ws)
-        sst = np.array(sst)
-        usurf = np.array(usurf)
-        vsurf = np.array(vsurf)
-        salt = np.array(salt)
+            # Convert any remaining masked arrays to regular arrays
+            lon = np.array(lon)
+            lat = np.array(lat)
+            swh = np.array(swh)
+            ws = np.array(ws)
+            sst = np.array(sst)
+            usurf = np.array(usurf)
+            vsurf = np.array(vsurf)
+            salt = np.array(salt)
 
-        edges = create_graph(lon, lat)
+            edges = create_graph(lon, lat)
 
-        start_lon, start_lat = start_port
-        end_lon, end_lat = end_port
+            start_lon, start_lat = start_port
+            end_lon, end_lat = end_port
 
-        start_i, start_j = find_nearest_index(lon, lat, start_lon, start_lat)
-        end_i, end_j = find_nearest_index(lon, lat, end_lon, end_lat)
+            start_i, start_j = find_nearest_index(lon, lat, start_lon, start_lat)
+            end_i, end_j = find_nearest_index(lon, lat, end_lon, end_lat)
 
-        start_idx = start_i * len(lat) + start_j
-        end_idx = end_i * len(lat) + end_j
+            start_idx = start_i * len(lat) + start_j
+            end_idx = end_i * len(lat) + end_j
 
-        speed = SPEED_SCALING[ship_type]
+            speed = SPEED_SCALING[ship_type]
 
-        num_nodes = len(lon) * len(lat)
-        distance, path = dijkstra(start_idx, end_idx, edges, num_nodes, speed)
+            num_nodes = len(lon) * len(lat)
+            distance, path = dijkstra(start_idx, end_idx, edges, num_nodes, speed)
 
-        optimized_route = []
-        for node in path:
-            i, j = divmod(node, len(lat))
-            optimized_route.append([float(lon[i]), float(lat[j])])
+            optimized_route = []
+            for node in path:
+                i, j = divmod(node, len(lat))
+                optimized_route.append([float(lon[i]), float(lat[j])])
 
-        return https_fn.Response(json={
-            "distance": float(distance),
-            "optimized_route": optimized_route,
-            "num_steps": len(path),
-            "avg_step_distance": float(distance / (len(path) - 1))
-        })
-    except Exception as e:
-        return https_fn.Response(json={"error": str(e)}, status=500)
+            return https_fn.Response(json={
+                "distance": float(distance),
+                "optimized_route": optimized_route,
+                "num_steps": len(path),
+                "avg_step_distance": float(distance / (len(path) - 1))
+            })
+        except Exception as e:
+            return https_fn.Response(json={"error": str(e)}, status=500)
+    
+    return wrapped_function()
 
 @https_fn.on_request()
 def create_session(req: https_fn.Request) -> https_fn.Response:
-    try:
-        db = firestore.client()
-        session_ref = db.collection('sessions').document()
-        session_ref.set({
-            'created_at': firestore.SERVER_TIMESTAMP,
-            'status': 'created'
-        })
-        return https_fn.Response(json={"session_id": session_ref.id})
-    except Exception as e:
-        return https_fn.Response(json={"error": str(e)}, status=500)
+    @CORS(app, origins=["https://ship-routing-app.web.app", "http://localhost:3000"])
+    def wrapped_function():
+        try:
+            db = firestore.client()
+            session_ref = db.collection('sessions').document()
+            session_ref.set({
+                'created_at': firestore.SERVER_TIMESTAMP,
+                'status': 'created'
+            })
+            return https_fn.Response(json={"session_id": session_ref.id})
+        except Exception as e:
+            return https_fn.Response(json={"error": str(e)}, status=500)
+    
+    return wrapped_function()
 
 @https_fn.on_request()
 def update_session(req: https_fn.Request) -> https_fn.Response:
-    data = req.json
-    if not data or 'session_id' not in data:
-        return https_fn.Response("No session_id provided", status=400)
+    @CORS(app, origins=["https://ship-routing-app.web.app", "http://localhost:3000"])
+    def wrapped_function():
+        data = req.json
+        if not data or 'session_id' not in data:
+            return https_fn.Response("No session_id provided", status=400)
 
-    try:
-        db = firestore.client()
-        session_ref = db.collection('sessions').document(data['session_id'])
-        session_ref.update(data)
-        return https_fn.Response(json={"status": "updated"})
-    except Exception as e:
-        return https_fn.Response(json={"error": str(e)}, status=500)
+        try:
+            db = firestore.client()
+            session_ref = db.collection('sessions').document(data['session_id'])
+            session_ref.update(data)
+            return https_fn.Response(json={"status": "updated"})
+        except Exception as e:
+            return https_fn.Response(json={"error": str(e)}, status=500)
+    
+    return wrapped_function()
 
 @https_fn.on_request()
 def get_session(req: https_fn.Request) -> https_fn.Response:
-    session_id = req.args.get('session_id')
-    if not session_id:
-        return https_fn.Response("No session_id provided", status=400)
+    @CORS(app, origins=["https://ship-routing-app.web.app", "http://localhost:3000"])
+    def wrapped_function():
+        session_id = req.args.get('session_id')
+        if not session_id:
+            return https_fn.Response("No session_id provided", status=400)
 
-    try:
-        db = firestore.client()
-        session_ref = db.collection('sessions').document(session_id)
-        session_data = session_ref.get().to_dict()
-        return https_fn.Response(json=session_data)
-    except Exception as e:
-        return https_fn.Response(json={"error": str(e)}, status=500)
+        try:
+            db = firestore.client()
+            session_ref = db.collection('sessions').document(session_id)
+            session_data = session_ref.get().to_dict()
+            return https_fn.Response(json=session_data)
+        except Exception as e:
+            return https_fn.Response(json={"error": str(e)}, status=500)
+    
+    return wrapped_function()
 
 @https_fn.on_request()
 def delete_session(req: https_fn.Request) -> https_fn.Response:
-    session_id = req.args.get('session_id')
-    if not session_id:
-        return https_fn.Response("No session_id provided", status=400)
+    @CORS(app, origins=["https://ship-routing-app.web.app", "http://localhost:3000"])
+    def wrapped_function():
+        session_id = req.args.get('session_id')
+        if not session_id:
+            return https_fn.Response("No session_id provided", status=400)
 
-    try:
-        db = firestore.client()
-        db.collection('sessions').document(session_id).delete()
-        return https_fn.Response(json={"status": "deleted"})
-    except Exception as e:
-        return https_fn.Response(json={"error": str(e)}, status=500)
+        try:
+            db = firestore.client()
+            db.collection('sessions').document(session_id).delete()
+            return https_fn.Response(json={"status": "deleted"})
+        except Exception as e:
+            return https_fn.Response(json={"error": str(e)}, status=500)
+    
+    return wrapped_function()
