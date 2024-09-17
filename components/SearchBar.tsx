@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { Search } from 'lucide-react'
 import { Input } from './ui/input'
 import { Button } from './ui/button'
+import { getFunctions, httpsCallable } from "firebase/functions";
+import { app } from '../lib/firebase'
 
 interface SearchBarProps {
   onLocationSelect: (location: [number, number]) => void
@@ -14,31 +16,26 @@ export default function SearchBar({ onLocationSelect, onSearch, onConfirmLocatio
   const [searchQuery, setSearchQuery] = useState('')
   const [suggestions, setSuggestions] = useState<any[]>([])
 
-  useEffect(() => {
-    if (searchQuery.length > 2) {
-      const fetchSuggestions = async () => {
-        try {
-          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`)
-          const data = await response.json()
-          setSuggestions(data)
-        } catch (error) {
-          console.error('Error fetching suggestions:', error)
-        }
+  const handleSearch = async () => {
+    try {
+      const functions = getFunctions(app);
+      const search = httpsCallable(functions, 'search');
+      const result = await search({ query: searchQuery });
+      const data = result.data as { coordinates: [number, number] };
+      if (data.coordinates) {
+        onLocationSelect(data.coordinates);
+        setSearchQuery('');
+        setSuggestions([]);
       }
-      fetchSuggestions()
-    } else {
-      setSuggestions([])
+    } catch (error) {
+      console.error('Error searching for location:', error);
     }
-  }, [searchQuery])
-
-  const handleSelect = (lon: number, lat: number) => {
-    onLocationSelect([lon, lat])
-    setSearchQuery('')
-    setSuggestions([])
   }
 
-  const handleSearch = () => {
-    onSearch(searchQuery)
+  const handleSelect = (lon: number, lat: number) => {
+    onLocationSelect([lon, lat]);
+    setSearchQuery('');
+    setSuggestions([]);
   }
 
   return (
