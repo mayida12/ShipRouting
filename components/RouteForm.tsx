@@ -8,6 +8,7 @@ import { DateTimePicker } from "./ui/date-time-picker"
 import { createOrGetSession, saveSessionData, getSessionData } from '../lib/session'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from '../lib/firebase'
+import { addDays, format } from 'date-fns'
 
 interface RouteFormProps {
   setSelectedRoute: (route: [number, number][]) => void
@@ -20,7 +21,7 @@ interface RouteFormProps {
 export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endPort, setIsSelectingLocation }: RouteFormProps) {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [shipType, setShipType] = useState('')
-  const [departureDateTime, setDepartureDateTime] = useState<Date | undefined>(new Date())
+  const [departureDateTime, setDepartureDateTime] = useState<Date | undefined>(new Date(2024, 7, 25))
 
   // Wrap shipDimensions in useMemo
   const shipDimensions = useMemo(() => ({ length: 200, width: 32, draft: 13 }), [])
@@ -86,6 +87,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
     }
   }
 
+  const minDate = new Date('2024-08-25')
+  const maxDate = new Date('2024-08-29')
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
@@ -109,7 +113,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
           <Anchor className="mr-2" /> Start Port
         </Label>
         <Button onClick={() => setIsSelectingLocation('start')} className="mt-2 w-full">
-          {startPort ? `Selected: ${startPort[0].toFixed(2)}, ${startPort[1].toFixed(2)}` : 'Select on Map'}
+          {startPort ? `Selected: ${startPort[0].toFixed(4)}, ${startPort[1].toFixed(4)}` : 'Select on Map'}
         </Button>
       </motion.div>
 
@@ -118,7 +122,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
           <Navigation className="mr-2" /> End Port
         </Label>
         <Button onClick={() => setIsSelectingLocation('end')} className="mt-2 w-full">
-          {endPort ? `Selected: ${endPort[0].toFixed(2)}, ${endPort[1].toFixed(2)}` : 'Select on Map'}
+          {endPort ? `Selected: ${endPort[0].toFixed(4)}, ${endPort[1].toFixed(4)}` : 'Select on Map'}
         </Button>
       </motion.div>
 

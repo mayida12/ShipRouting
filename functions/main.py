@@ -40,11 +40,11 @@ def optimize_route(req: https_fn.Request) -> https_fn.Response:
 
     try:
         # Here you would typically call your route optimization logic
-        # For now, we'll just return a dummy route
+        # For now, we'll just return a dummy route with 4 decimal precision
         dummy_route = [
-            start_port,
-            [(start_port[0] + end_port[0]) / 2, (start_port[1] + end_port[1]) / 2],
-            end_port
+            [round(start_port[0], 4), round(start_port[1], 4)],
+            [round((start_port[0] + end_port[0]) / 2, 4), round((start_port[1] + end_port[1]) / 2, 4)],
+            [round(end_port[0], 4), round(end_port[1], 4)]
         ]
 
         return https_fn.Response(json={"optimal_path": dummy_route})
