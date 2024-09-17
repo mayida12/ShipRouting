@@ -11,7 +11,6 @@ module.exports = {
       borderColor: {
         DEFAULT: 'hsl(var(--border))',
       },
-      // Add any other custom theme extensions here
     },
   },
   plugins: [],
