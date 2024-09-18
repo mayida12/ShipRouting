@@ -15,7 +15,7 @@ from flask_cors import CORS
 initialize_app()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["https://ship-routing-app.web.app", "https://ship-routing-app.firebaseapp.com", "http://localhost:3000"]}})
+CORS(app)  # This enables CORS for all routes
 
 # Constants (scaling factors for ship speeds)
 SPEED_SCALING = {
@@ -154,8 +154,19 @@ def search():
 @app.route('/optimize_route', methods=['POST', 'OPTIONS'])
 def optimize_route():
     if request.method == 'OPTIONS':
-        return '', 204
-    
+        # Allows GET requests from any origin with the Content-Type
+        # header and caches preflight response for 3600s
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        return ('', 204, headers)
+
+    # Set CORS headers for the main request
+    headers = {'Access-Control-Allow-Origin': '*'}
+
     data = request.json
     if not data:
         return jsonify({"error": "No data provided"}), 400
@@ -236,6 +247,6 @@ def optimize_route():
             "optimized_route": optimized_route,
             "num_steps": len(path),
             "avg_step_distance": float(distance / (len(path) - 1))
-        })
+        }), 200, headers
     except Exception as e:
         return jsonify({"error": str(e)}), 500

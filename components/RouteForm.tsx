@@ -42,14 +42,14 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
     setIsLoading(true)
     try {
       const functions = getFunctions(app);
-      const optimizeRoute = httpsCallable<any, { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number }>(functions, 'optimize_route');
+      const optimizeRoute = httpsCallable(functions, 'api-optimize_route');
       const result = await optimizeRoute({
         shipType,
         startPort,
         endPort,
         departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : undefined,
       });
-      const data = result.data;
+      const data = result.data as { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number };
       setSelectedRoute(data.optimized_route);
     } catch (error: any) {
       console.error('Error optimizing route:', error.message, error.details);
