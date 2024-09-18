@@ -1,0 +1,19 @@
+[debug] [2024-09-18T06:23:17.539Z] ----------------------------------------------------------------------
+[debug] [2024-09-18T06:23:17.540Z] Command:       C:\Program Files\nodejs\node.exe D:\nodejs\node_modules\firebase-tools\lib\bin\firebase.js deploy --only functions
+[debug] [2024-09-18T06:23:17.541Z] CLI Version:   13.15.2
+[debug] [2024-09-18T06:23:17.541Z] Platform:      win32
+[debug] [2024-09-18T06:23:17.541Z] Node Version:  v18.20.4
+[debug] [2024-09-18T06:23:17.542Z] Time:          Wed Sep 18 2024 11:53:17 GMT+0530 (India Standard Time)
+[debug] [2024-09-18T06:23:17.542Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2024-09-18T06:23:17.599Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2024-09-18T06:23:17.599Z] > authorizing via signed-in user (manwaarullahb@gmail.com)
+[debug] [2024-09-18T06:23:17.599Z] [iam] checking project ship-routing-app for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2024-09-18T06:23:17.600Z] > refreshing access token with scopes: []
+[debug] [2024-09-18T06:23:17.601Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2024-09-18T06:23:17.602Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-09-18T06:23:18.136Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2024-09-18T06:23:18.136Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2024-09-18T06:23:18.155Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/ship-routing-app:testIamPermissions [none]
+[debug] [2024-09-18T06:23:18.155Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/ship-routing-app:testIamPermissions x-goog-quota-user=projects/ship-routing-app
+[debug] [2024-09-18T06:23:18.155Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ship-routing-app:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
