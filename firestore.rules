@@ -15,5 +15,9 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if request.time < timestamp.date(2024, 10, 14);
     }
+
+    match /optimized_routes/{document=**} {
+      allow read, write: if true;
+    }
   }
 }

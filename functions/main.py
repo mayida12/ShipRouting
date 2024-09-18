@@ -217,6 +217,20 @@ def optimize_route():
             i, j = divmod(node, len(lat))
             optimized_route.append([float(lon[i]), float(lat[j])])
 
+        # Save the data to Firestore
+        db = firestore.client()
+        doc_ref = db.collection('optimized_routes').document()
+        doc_ref.set({
+            'shipType': ship_type,
+            'startPort': start_port,
+            'endPort': end_port,
+            'departureDate': departure_date,
+            'optimizedRoute': optimized_route,
+            'distance': distance,
+            'numSteps': len(path),
+            'avgStepDistance': distance / (len(path) - 1)
+        })
+
         return jsonify({
             "distance": float(distance),
             "optimized_route": optimized_route,
@@ -225,75 +239,3 @@ def optimize_route():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-@app.route('/create_session', methods=['POST', 'OPTIONS'])
-def create_session():
-    if request.method == 'OPTIONS':
-        return '', 204
-    
-    try:
-        db = firestore.client()
-        session_ref = db.collection('sessions').document()
-        session_ref.set({
-            'created_at': firestore.SERVER_TIMESTAMP,
-            'status': 'created'
-        })
-        return jsonify({"session_id": session_ref.id})
-    except Exception as e:
-        app.logger.error(f"Error creating session: {str(e)}")
-        return jsonify({"error": f"Error creating session: {str(e)}"}), 500
-
-@app.route('/update_session', methods=['POST', 'OPTIONS'])
-def update_session():
-    if request.method == 'OPTIONS':
-        return '', 204
-    
-    data = request.json
-    if not data or 'session_id' not in data:
-        return jsonify({"error": "No session_id provided"}), 400
-
-    try:
-        db = firestore.client()
-        session_ref = db.collection('sessions').document(data['session_id'])
-        session_ref.update(data)
-        return jsonify({"status": "updated"})
-    except Exception as e:
-        app.logger.error(f"Error updating session: {str(e)}")
-        return jsonify({"error": f"Error updating session: {str(e)}"}), 500
-
-@app.route('/get_session', methods=['GET', 'OPTIONS'])
-def get_session():
-    if request.method == 'OPTIONS':
-        return '', 204
-    
-    session_id = request.args.get('session_id')
-    if not session_id:
-        return jsonify({"error": "No session_id provided"}), 400
-
-    try:
-        db = firestore.client()
-        session_ref = db.collection('sessions').document(session_id)
-        session_data = session_ref.get().to_dict()
-        if session_data is None:
-            return jsonify({"error": "Session not found"}), 404
-        return jsonify(session_data)
-    except Exception as e:
-        app.logger.error(f"Error getting session: {str(e)}")
-        return jsonify({"error": f"Error getting session: {str(e)}"}), 500
-
-@app.route('/delete_session', methods=['DELETE', 'OPTIONS'])
-def delete_session():
-    if request.method == 'OPTIONS':
-        return '', 204
-    
-    session_id = request.args.get('session_id')
-    if not session_id:
-        return jsonify({"error": "No session_id provided"}), 400
-
-    try:
-        db = firestore.client()
-        db.collection('sessions').document(session_id).delete()
-        return jsonify({"status": "deleted"})
-    except Exception as e:
-        app.logger.error(f"Error deleting session: {str(e)}")
-        return jsonify({"error": f"Error deleting session: {str(e)}"}), 500

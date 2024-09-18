@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Ship, Anchor, Navigation, Calendar } from 'lucide-react'
 import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { DateTimePicker } from "./ui/date-time-picker"
-import { createOrGetSession, saveSessionData, getSessionData, SessionData, clearTempSessionData } from '../lib/session'
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { app } from '../lib/firebase'
-import { addDays, format } from 'date-fns'
+import { format } from 'date-fns'
 
 interface RouteFormProps {
   setSelectedRoute: (route: [number, number][]) => void
@@ -19,54 +18,14 @@ interface RouteFormProps {
 }
 
 export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endPort, setIsSelectingLocation }: RouteFormProps) {
-  const [sessionId, setSessionId] = useState<string | null>(null)
   const [shipType, setShipType] = useState('')
   const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date(2024, 7, 25))
   const [isLoading, setIsLoading] = useState(false)
-
-  const shipDimensions = useMemo(() => ({ length: 200, width: 32, draft: 13 }), [])
-
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
 
   const isFormValid = () => {
     return shipType && startPort && endPort && departureDate
   }
-
-  useEffect(() => {
-    async function initSession() {
-      try {
-        const id = await createOrGetSession()
-        setSessionId(id)
-        const data = await getSessionData(id)
-        if (data) {
-          setShipType(data.shipType || '')
-          setDepartureDate(data.departureDate ? new Date(data.departureDate) : new Date(2024, 7, 25))
-        }
-      } catch (error: any) {
-        console.error("Error initializing session:", error.message, error.details)
-        alert(`Error initializing session: ${error.message}. Please try refreshing the page.`)
-      }
-    }
-    initSession()
-    return () => {
-      clearTempSessionData()
-    }
-  }, [])
-
-  useEffect(() => {
-    if (sessionId) {
-      saveSessionData(sessionId, {
-        shipType,
-        shipDimensions,
-        startPort: startPort || undefined,
-        endPort: endPort || undefined,
-        departureDate: departureDate?.toISOString(),
-      }).catch(error => {
-        console.error("Error saving session data:", error.message, error.details)
-        alert(`Error saving session data: ${error.message}. Your progress may not be saved.`)
-      })
-    }
-  }, [sessionId, shipType, startPort, endPort, departureDate, shipDimensions])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,15 +51,6 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       });
       const data = result.data;
       setSelectedRoute(data.optimized_route);
-      
-      if (sessionId) {
-        await saveSessionData(sessionId, {
-          optimizedRoute: data.optimized_route,
-          distance: data.distance,
-          numSteps: data.num_steps,
-          avgStepDistance: data.avg_step_distance
-        });
-      }
     } catch (error: any) {
       console.error('Error optimizing route:', error.message, error.details);
       alert(`Error optimizing route: ${error.message}. Please try again.`);
