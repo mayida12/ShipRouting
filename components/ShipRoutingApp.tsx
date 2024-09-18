@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import dynamic from 'next/dynamic'
 import Sidebar from './Sidebar'
 import SearchBar from './SearchBar'
+import type { LeafletMapProps } from './LeafletMap'
 
-const MapComponent = dynamic(() => import('./MapComponent'), {
+const LeafletMap = dynamic<LeafletMapProps>(() => import('./LeafletMap'), {
   ssr: false,
   loading: () => <p>Loading map...</p>
 })
@@ -32,9 +33,14 @@ export default function ShipRoutingApp() {
     // ... (keep existing search logic)
   }
 
-  const handleConfirmLocation = () => {
+  const handleConfirmLocation = useCallback(() => {
     setIsSelectingLocation(null)
-  }
+    setZoomToLocation([20.5937, 78.9629]) // Default view coordinates
+  }, [])
+
+  const handleZoomOut = useCallback(() => {
+    setZoomToLocation(null)
+  }, [])
 
   return (
     <div className="flex h-screen">
@@ -54,13 +60,13 @@ export default function ShipRoutingApp() {
             onConfirmLocation={handleConfirmLocation}
           />
         )}
-        <MapComponent
+        <LeafletMap
           route={selectedRoute}
+          showWeather={showWeather}
           startPort={startPort}
           endPort={endPort}
           isSelectingLocation={isSelectingLocation}
           onLocationSelect={handleLocationSelect}
-          showWeather={showWeather}
           zoomToLocation={zoomToLocation}
         />
       </main>

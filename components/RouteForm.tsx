@@ -5,8 +5,6 @@ import { Button } from './ui/button'
 import { Label } from './ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { DateTimePicker } from "./ui/date-time-picker"
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from '../lib/firebase'
 import { format } from 'date-fns'
 
 interface RouteFormProps {
@@ -41,19 +39,39 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
 
     setIsLoading(true)
     try {
-      const functions = getFunctions(app);
-      const optimizeRoute = httpsCallable(functions, 'api-optimize_route');
-      const result = await optimizeRoute({
+      console.log('Sending request with data:', {
         shipType,
         startPort,
         endPort,
         departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : undefined,
       });
-      const data = result.data as { optimized_route: [number, number][], distance: number, num_steps: number, avg_step_distance: number };
+
+      const response = await fetch('http://localhost:5000/optimize_route', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Origin': 'http://localhost:3000'
+        },
+        body: JSON.stringify({
+          shipType,
+          startPort,
+          endPort,
+          departureDate: departureDate ? format(departureDate, 'yyyy-MM-dd') : undefined,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorData.error || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
+
+      console.log('Received data:', data);
       setSelectedRoute(data.optimized_route);
     } catch (error: any) {
-      console.error('Error optimizing route:', error.message, error.details);
-      alert(`Error optimizing route: ${error.message}. Please try again.`);
+      console.error('Error optimizing route:', error);
+      alert(`Error optimizing route: ${error.message || 'Unknown error'}. Please try again.`);
     } finally {
       setIsLoading(false)
     }
@@ -70,9 +88,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
             <SelectValue placeholder="Select Ship Type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="cargo">Cargo Ship</SelectItem>
-            <SelectItem value="tanker">Tanker</SelectItem>
-            <SelectItem value="passenger">Passenger Ship</SelectItem>
+            <SelectItem value="Passenger ship">Passenger Ship</SelectItem>
+            <SelectItem value="Cargo ship">Cargo Ship</SelectItem>
+            <SelectItem value="Tanker">Tanker</SelectItem>
           </SelectContent>
         </Select>
       </motion.div>
