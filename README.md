@@ -1,106 +1,122 @@
-# Optimal Ship Routing Algorithm
+# Ship Routing Optimizer
 
 ## Project Overview
 
-A web application that calculates efficient ship routes within the Indian Ocean region, optimizing for fuel consumption, travel time, and safety.
+A web application that optimizes ship routes within the Indian Ocean region, considering factors such as fuel efficiency, travel time, and safety. The system integrates environmental data to provide efficient and secure routes for various types of ships.
 
-### Key Features
+## Key Features
 
-- Interactive map interface for route planning
-- Server-side route optimization algorithm
-- Visualization of optimized routes
-- Consideration of environmental factors (winds, currents, waves)
+- Interactive map interface centered on the Indian Ocean region
+- Route optimization algorithm considering environmental factors
+- Integration of environmental data (significant wave height, wind speed, sea surface temperature, surface currents, salinity)
+- Support for different ship types (Passenger ship, Cargo ship, Tanker)
+- Animated route visualization
+- Location search functionality
+- Weather overlay option
 
 ## Technologies Used
 
-- **Frontend**: Next.js 14, React, Tailwind CSS
-- **Backend**: Google Cloud Functions (Python)
-- **Map Integration**: Leaflet with react-leaflet
-- **Storage**: Google Cloud Storage
-- **Deployment**: Firebase Hosting
+### Frontend
+- Next.js, React, TypeScript
+- Map Integration: Leaflet, React-Leaflet
+- 3D Rendering: Three.js
+- Styling: Tailwind CSS
+- Animation: Framer Motion
+- Icons: Lucide React
+- Date Handling: date-fns
 
-## Live Demo
+### Backend
+- Python
+- Flask
+- NumPy, SciPy
+- netCDF4 for environmental data processing
+- Numba for performance optimization
 
-[https://ship-routing-app.web.app/](https://ship-routing-app.web.app/)
+## Project Structure
+
+### Frontend
+- `components/`:
+  - `LeafletMap.tsx`: Main map component with route visualization
+  - `MapComponent.tsx`: Wrapper for LeafletMap with 3D ship models
+  - `RouteForm.tsx`: Form for inputting route parameters
+  - `SearchBar.tsx`: Search functionality for locations
+  - `ShipRoutingApp.tsx`: Main application component
+  - `Sidebar.tsx`: Collapsible sidebar for route input
+
+### Backend
+- `app.py`: Flask application with route optimization logic
 
 ## Setup and Installation
 
-### Prerequisites
-
-- Node.js (v18 or later)
-- npm
-- Google Cloud SDK
-- Firebase CLI
-
-### Local Development
-
-1. Clone and setup:
+1. Clone the repository:
    ```bash
-   git clone https://github.com/codewithmirza/ship-routing-app.git
-   cd ship-routing-app
+   git clone https://github.com/yourusername/ship-routing-optimizer.git
+   cd ship-routing-optimizer
+   ```
+
+2. Install frontend dependencies:
+   ```bash
    npm install
    ```
 
-2. Run development server:
+3. Install backend dependencies:
+   ```bash
+   pip install flask flask-cors netCDF4 numpy scipy numba
+   ```
+
+4. Run the frontend development server:
    ```bash
    npm run dev
    ```
 
-3. Open [http://localhost:3000](http://localhost:3000)
-
-### Cloud Functions Development
-
-1. Navigate to functions directory:
+5. Run the backend server:
    ```bash
-   cd functions
+   python backend/app.py
    ```
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+6. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-3. Deploy functions:
-   ```bash
-   gcloud functions deploy optimize_route --runtime python39 --trigger-http --allow-unauthenticated
-   ```
+## Usage
 
-## Building for Production
+1. Open the sidebar and select the ship type.
+2. Choose start and end ports by clicking on the map or using the search function.
+3. Set the departure date.
+4. Click "Calculate Optimal Route" to generate the route.
+5. Use the "Start Animation" button to visualize the ship's journey.
+6. Toggle the weather overlay for additional environmental information.
 
-1. Build frontend:
-   ```bash
-   npm run build
-   ```
+## Route Optimization
 
-2. Deploy to Firebase:
-   ```bash
-   firebase deploy
-   ```
+The backend uses the Dijkstra algorithm to calculate the optimal route, considering:
+- Ship type and speed
+- Significant wave height
+- Wind speed
+- Sea surface temperature
+- Surface currents
+- Salinity
 
-## Project Structure
+Environmental data is processed from netCDF files and interpolated to a common grid for route calculations.
 
-- `pages/`: Next.js pages
-- `components/`: React components
-- `utils/`: Utility functions
-- `styles/`: CSS and Tailwind configs
-- `public/`: Static assets
-- `functions/`: Cloud Functions code
+## Future Improvements
 
-## Data Sources
+- Implement more sophisticated routing algorithms
+- Add support for more ship types and environmental factors
+- Enhance the user interface for better data visualization
+- Implement real-time data updates
+- Develop a mobile app version
 
-- Surface currents and waves: [INCOIS Forecasts](https://incois.gov.in/portal/osf/osf.jsp)
-- Surface winds: Available upon request from INCOIS
+## Contributing
 
-## Limitations and Future Improvements
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
 
-- Implement caching for optimization results
-- Add user authentication for personalized routes
-- Integrate real-time weather data
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Contact
 
-For questions or information, visit the [GitHub repository](https://github.com/codewithmirza/ship-routing-app).
+For questions or collaborations, please open an issue on our GitHub repository.
 
 ---
 
-Remember to replace placeholder links, email addresses, and other project-specific details as needed.
+Remember to replace placeholder links, usernames, and other project-specific details as needed.
