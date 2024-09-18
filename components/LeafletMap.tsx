@@ -65,12 +65,22 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   defaultCenter,
   defaultZoom
 }) => {
-  const mapRef = useRef<L.Map>(null)
+  const mapRef = useRef<L.Map | null>(null)
   const [shipPosition, setShipPosition] = useState<[number, number] | null>(null)
   const [shipAngle, setShipAngle] = useState(0)
   const [isAnimating, setIsAnimating] = useState(false)
   const [traveledPath, setTraveledPath] = useState<[number, number][]>([])
   const animationRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (mapRef.current) {
+      if (zoomToLocation) {
+        mapRef.current.setView([zoomToLocation[1], zoomToLocation[0]], 10)
+      } else {
+        mapRef.current.setView([defaultCenter[1], defaultCenter[0]], defaultZoom)
+      }
+    }
+  }, [zoomToLocation, defaultCenter, defaultZoom])
 
   useEffect(() => {
     if (startPort && route && !isAnimating) {
@@ -145,6 +155,12 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
           style={{ height: '100%', width: '100%' }}
           className="z-0"
           ref={mapRef}
+          whenReady={() => {
+            if (mapRef.current) {
+              // You can perform any initialization here if needed
+              console.log("Map is ready");
+            }
+          }}
         >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

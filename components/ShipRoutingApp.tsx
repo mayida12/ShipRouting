@@ -11,7 +11,7 @@ const LeafletMap = dynamic<LeafletMapProps>(() => import('./LeafletMap'), {
   loading: () => <p>Loading map...</p>
 })
 
-const DEFAULT_CENTER: [number, number] = [20.5937, 78.9629]
+const DEFAULT_CENTER: [number, number] = [20.5937, 78.9629] // Center of India
 const DEFAULT_ZOOM = 5
 
 export default function ShipRoutingApp() {
@@ -48,8 +48,7 @@ export default function ShipRoutingApp() {
 
   const handleConfirmLocation = useCallback(() => {
     setIsSelectingLocation(null)
-    setZoomToLocation(DEFAULT_CENTER)
-    setSearchResults([])
+    setZoomToLocation(null) // Reset zoom location
   }, [])
 
   const handleZoomOut = useCallback(() => {

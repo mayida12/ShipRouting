@@ -19,21 +19,20 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
   const [shipType, setShipType] = useState('')
   const [departureDate, setDepartureDate] = useState<Date | undefined>(new Date(2024, 7, 25))
   const [isLoading, setIsLoading] = useState(false)
-  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
+  const [currentError, setCurrentError] = useState<string | null>(null)
 
   const isFormValid = () => {
-    return shipType && startPort && endPort && departureDate
-  }
+    return (
+      startPort &&
+      endPort &&
+      departureDate &&
+      shipType !== ''
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isFormValid()) {
-      const errors: {[key: string]: string} = {}
-      if (!shipType) errors.shipType = "Ship type is required"
-      if (!startPort) errors.startPort = "Start port is required"
-      if (!endPort) errors.endPort = "End port is required"
-      if (!departureDate) errors.departureDate = "Departure date is required"
-      setFormErrors(errors)
       return
     }
 
@@ -71,7 +70,7 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
       setSelectedRoute(data.optimized_route);
     } catch (error: any) {
       console.error('Error optimizing route:', error);
-      alert(`Error optimizing route: ${error.message || 'Unknown error'}. Please try again.`);
+      setCurrentError(`Error optimizing route: ${error.message || 'Unknown error'}. Please try again.`);
     } finally {
       setIsLoading(false)
     }
@@ -93,6 +92,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
             <SelectItem value="Tanker">Tanker</SelectItem>
           </SelectContent>
         </Select>
+        {currentError === "Ship type is required" && (
+          <p className="text-red-500 text-sm mt-1">{currentError}</p>
+        )}
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
@@ -102,6 +104,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         <Button onClick={() => setIsSelectingLocation('start')} className="mt-2 w-full">
           {startPort ? `Selected: ${startPort[0].toFixed(4)}, ${startPort[1].toFixed(4)}` : 'Select on Map'}
         </Button>
+        {currentError === "Start port is required" && (
+          <p className="text-red-500 text-sm mt-1">{currentError}</p>
+        )}
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
@@ -111,6 +116,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         <Button onClick={() => setIsSelectingLocation('end')} className="mt-2 w-full">
           {endPort ? `Selected: ${endPort[0].toFixed(4)}, ${endPort[1].toFixed(4)}` : 'Select on Map'}
         </Button>
+        {currentError === "End port is required" && (
+          <p className="text-red-500 text-sm mt-1">{currentError}</p>
+        )}
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
@@ -121,6 +129,9 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
           date={departureDate}
           setDate={(newDate) => setDepartureDate(newDate)}
         />
+        {currentError === "Departure date is required" && (
+          <p className="text-red-500 text-sm mt-1">{currentError}</p>
+        )}
       </motion.div>
 
       <motion.div animate={{ opacity: isNavOpen ? 1 : 0 }}>
@@ -133,9 +144,12 @@ export default function RouteForm({ setSelectedRoute, isNavOpen, startPort, endP
         </Button>
       </motion.div>
 
-      {Object.entries(formErrors).map(([field, error]) => (
-        <p key={field} className="text-red-500 text-sm">{error}</p>
-      ))}
+      {currentError && currentError !== "Ship type is required" && 
+       currentError !== "Start port is required" && 
+       currentError !== "End port is required" && 
+       currentError !== "Departure date is required" && (
+        <p className="text-red-500 text-sm">{currentError}</p>
+      )}
     </form>
   )
 }
