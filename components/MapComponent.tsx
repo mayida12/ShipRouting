@@ -16,7 +16,7 @@ interface MapComponentProps {
   zoomToLocation: [number, number] | null
 }
 
-const LeafletMap = dynamic<MapComponentProps>(() => import('./LeafletMap'), {
+const LeafletMap = dynamic<MapComponentProps>(() => import('./LeafletMap').then(mod => mod.default as React.ComponentType<MapComponentProps>), {
   ssr: false,
   loading: () => <p>Loading map...</p>
 })
@@ -92,13 +92,22 @@ const MapComponent: React.FC<MapComponentProps> = ({
   zoomToLocation 
 }) => {
   const [isMounted, setIsMounted] = useState(false)
-
+  // Update the initial center coordinates to focus on India & the Indian Ocean region
+  const [center, setCenter] = useState<[number, number]>([20.5937, 78.9629]); // Focus on the Indian Ocean and India
+  const [zoom, setZoom] = useState(5); // Slightly higher zoom level for a more focused view
+  
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
   if (!isMounted) {
     return null
+  }
+
+  const handleButtonClick = () => {
+    // Update the focus coordinates to zoom out over the Indian Ocean
+    setCenter([20.5937, 78.9629]) // Coordinates around the Indian Ocean
+    setZoom(4)
   }
 
   return (
@@ -112,6 +121,15 @@ const MapComponent: React.FC<MapComponentProps> = ({
         showWeather={showWeather}
         zoomToLocation={zoomToLocation}
       />
+      <MapContainer center={center} zoom={zoom} style={{ height: '400px', width: '100%' }}>
+        <TileLayer
+          attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        />
+        {startPort && <ShipMarker position={startPort} />}
+        {endPort && <ShipMarker position={endPort} />}
+      </MapContainer>
+      <button onClick={handleButtonClick}>Focus on Indian Ocean</button>
     </div>
   )
 }

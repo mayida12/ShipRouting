@@ -11,6 +11,9 @@ const LeafletMap = dynamic<LeafletMapProps>(() => import('./LeafletMap'), {
   loading: () => <p>Loading map...</p>
 })
 
+const DEFAULT_CENTER: [number, number] = [20.5937, 78.9629]
+const DEFAULT_ZOOM = 5
+
 export default function ShipRoutingApp() {
   const [isNavOpen, setIsNavOpen] = useState(true)
   const [selectedRoute, setSelectedRoute] = useState<[number, number][] | null>(null)
@@ -19,6 +22,7 @@ export default function ShipRoutingApp() {
   const [isSelectingLocation, setIsSelectingLocation] = useState<'start' | 'end' | null>(null)
   const [showWeather, setShowWeather] = useState(false)
   const [zoomToLocation, setZoomToLocation] = useState<[number, number] | null>(null)
+  const [searchResults, setSearchResults] = useState<[number, number][]>([])
 
   const handleLocationSelect = (location: [number, number]) => {
     if (isSelectingLocation === 'start') {
@@ -30,12 +34,22 @@ export default function ShipRoutingApp() {
   }
 
   const handleSearch = async (query: string) => {
-    // ... (keep existing search logic)
+    // Simulated search results (replace with actual API call)
+    const results: [number, number][] = [
+      [78.9629, 20.5937], // Example coordinates
+      [77.2090, 28.6139],
+      [72.8777, 19.0760],
+    ]
+    setSearchResults(results)
+    if (results.length > 0) {
+      setZoomToLocation(results[0])
+    }
   }
 
   const handleConfirmLocation = useCallback(() => {
     setIsSelectingLocation(null)
-    setZoomToLocation([20.5937, 78.9629]) // Default view coordinates
+    setZoomToLocation(DEFAULT_CENTER)
+    setSearchResults([])
   }, [])
 
   const handleZoomOut = useCallback(() => {
@@ -68,6 +82,9 @@ export default function ShipRoutingApp() {
           isSelectingLocation={isSelectingLocation}
           onLocationSelect={handleLocationSelect}
           zoomToLocation={zoomToLocation}
+          searchResults={searchResults}
+          defaultCenter={DEFAULT_CENTER}
+          defaultZoom={DEFAULT_ZOOM}
         />
       </main>
     </div>

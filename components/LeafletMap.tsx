@@ -12,6 +12,9 @@ export interface LeafletMapProps {
   isSelectingLocation: 'start' | 'end' | null
   onLocationSelect: (location: [number, number]) => void
   zoomToLocation: [number, number] | null
+  searchResults: [number, number][]
+  defaultCenter: [number, number]
+  defaultZoom: number
 }
 
 function MapEventHandler({ isSelectingLocation, onLocationSelect }: { isSelectingLocation: 'start' | 'end' | null, onLocationSelect: (location: [number, number]) => void }) {
@@ -22,6 +25,20 @@ function MapEventHandler({ isSelectingLocation, onLocationSelect }: { isSelectin
       }
     },
   })
+  return null
+}
+
+function ZoomHandler({ zoomToLocation, defaultCenter, defaultZoom }: { zoomToLocation: [number, number] | null, defaultCenter: [number, number], defaultZoom: number }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (zoomToLocation) {
+      map.flyTo([zoomToLocation[1], zoomToLocation[0]], 10, { duration: 2 })
+    } else {
+      map.flyTo([defaultCenter[1], defaultCenter[0]], defaultZoom, { duration: 2 })
+    }
+  }, [map, zoomToLocation, defaultCenter, defaultZoom])
+
   return null
 }
 
@@ -43,7 +60,10 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   endPort, 
   isSelectingLocation, 
   onLocationSelect,
-  zoomToLocation
+  zoomToLocation,
+  searchResults,
+  defaultCenter,
+  defaultZoom
 }) => {
   const mapRef = useRef<L.Map>(null)
   const [shipPosition, setShipPosition] = useState<[number, number] | null>(null)
@@ -115,25 +135,26 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
 
   const startIcon = createCustomIcon('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="3"/><line x1="12" y1="22" x2="12" y2="8"/><path d="M5 12H2a10 10 0 0 0 20 0h-3"/></svg>')
   const endIcon = createCustomIcon('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>')
+  const searchIcon = createCustomIcon('<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>')
 
   return (
-    <div className="relative h-full w-full">
-      <MapContainer
-        center={[20.5937, 78.9629]}
-        zoom={5}
-        style={{ height: '100%', width: '100%' }}
-        className="z-0"
-        ref={mapRef}
-      >
+        <div className="relative h-full w-full">
+          <MapContainer
+          center={[defaultCenter[1], defaultCenter[0]]} // Use updated center for the Indian Ocean
+          zoom={defaultZoom} 
+          style={{ height: '100%', width: '100%' }}
+          className="z-0"
+          ref={mapRef}
+        >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         {route && (
-          <Polyline positions={route} color="black" weight={3} opacity={0.7} />
+          <Polyline positions={route.map(([lon, lat]) => [lat, lon])} color="blue" weight={3} opacity={0.7} />
         )}
         {traveledPath.length > 1 && (
-          <Polyline positions={traveledPath} color="#10B981" weight={4} />
+          <Polyline positions={traveledPath.map(([lon, lat]) => [lat, lon])} color="#10B981" weight={4} />
         )}
         {startPort && (
           <Marker position={[startPort[1], startPort[0]]} icon={startIcon}>
@@ -154,7 +175,13 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
             attribution='Weather data © OpenWeatherMap'
           />
         )}
+        {searchResults.map((result, index) => (
+          <Marker key={index} position={[result[1], result[0]]} icon={searchIcon}>
+            <Popup>Search Result {index + 1}</Popup>
+          </Marker>
+        ))}
         <MapEventHandler isSelectingLocation={isSelectingLocation} onLocationSelect={onLocationSelect} />
+        <ZoomHandler zoomToLocation={zoomToLocation} defaultCenter={defaultCenter} defaultZoom={defaultZoom} />
       </MapContainer>
       {route && !isAnimating && (
         <Button 
