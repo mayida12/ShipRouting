@@ -1,7 +1,7 @@
 firebase-admin
 firebase-functions
 flask
-flask-cors
+flask-cors==3.0.10
 netCDF4
 numpy
 scipy
