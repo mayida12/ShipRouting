@@ -105,18 +105,8 @@ Environmental data is processed from netCDF files and interpolated to a common g
 - Implement real-time data updates
 - Develop a mobile app version
 
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## Contact
 
-For questions or collaborations, please open an issue on our GitHub repository.
+For questions or collaborations, please open an issue on our GitHub repository or contact the developer at [manwaarullahb@gmail.com](mailto:manwaarullahb@gmail.com).
 
 ---
-
-Remember to replace placeholder links, usernames, and other project-specific details as needed.
