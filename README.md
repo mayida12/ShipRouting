@@ -50,7 +50,7 @@ A web application that optimizes ship routes within the Indian Ocean region, con
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/codewithmirza/ship-routing-optimizer.git
+   git clone https://github.com/codewithmirza/ship-routing-app.git
    cd ship-routing-app
    ```
 
