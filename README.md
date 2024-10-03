@@ -50,8 +50,8 @@ A web application that optimizes ship routes within the Indian Ocean region, con
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/ship-routing-optimizer.git
-   cd ship-routing-optimizer
+   git clone https://github.com/codewithmirza/ship-routing-optimizer.git
+   cd ship-routing-app
    ```
 
 2. Install frontend dependencies:
