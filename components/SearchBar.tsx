@@ -1,42 +1,42 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { Search } from 'lucide-react'
-import { Input } from './ui/input'
-import { Button } from './ui/button'
-import { getFunctions, httpsCallable } from "firebase/functions";
-import { app } from '../lib/firebase'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Search } from "lucide-react";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
 
 interface SearchBarProps {
-  onLocationSelect: (location: [number, number]) => void
-  onSearch: (query: string) => void
-  onConfirmLocation: () => void
+  onLocationSelect: (location: [number, number]) => void;
+  onSearch?: (query: string) => void;
+  onConfirmLocation: () => void;
 }
 
-export default function SearchBar({ onLocationSelect, onSearch, onConfirmLocation }: SearchBarProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [suggestions, setSuggestions] = useState<any[]>([])
+export default function SearchBar({
+  onLocationSelect,
+  onConfirmLocation,
+}: SearchBarProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [suggestions, setSuggestions] = useState<any[]>([]);
 
   const handleSearch = async () => {
-    try {
-      const functions = getFunctions(app);
-      const search = httpsCallable(functions, 'search');
-      const result = await search({ query: searchQuery });
-      const data = result.data as { coordinates: [number, number] };
-      if (data.coordinates) {
-        onLocationSelect(data.coordinates);
-        setSearchQuery('');
-        setSuggestions([]);
-      }
-    } catch (error) {
-      console.error('Error searching for location:', error);
-    }
-  }
+    // You'll need to implement your search logic here
+    // This could be a prop passed from the parent component or something else 
+    console.log("Searching for:", searchQuery);
+
+  
+    const mockSuggestions = [
+      { display_name: "New York", lon: -74.006, lat: 40.7128 },
+      { display_name: "London", lon: -0.1276, lat: 51.5074 },
+      { display_name: "Tokyo", lon: 139.6917, lat: 35.6892 },
+    ];
+
+    setSuggestions(mockSuggestions);
+  };
 
   const handleSelect = (lon: number, lat: number) => {
     onLocationSelect([lon, lat]);
-    setSearchQuery('');
+    setSearchQuery("");
     setSuggestions([]);
-  }
+  };
 
   return (
     <>
@@ -63,7 +63,12 @@ export default function SearchBar({ onLocationSelect, onSearch, onConfirmLocatio
               <li
                 key={index}
                 className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                onClick={() => handleSelect(parseFloat(suggestion.lon), parseFloat(suggestion.lat))}
+                onClick={() =>
+                  handleSelect(
+                    parseFloat(suggestion.lon),
+                    parseFloat(suggestion.lat)
+                  )
+                }
               >
                 {suggestion.display_name}
               </li>
@@ -71,12 +76,12 @@ export default function SearchBar({ onLocationSelect, onSearch, onConfirmLocatio
           </ul>
         )}
       </motion.div>
-      <Button 
-        onClick={onConfirmLocation} 
+      <Button
+        onClick={onConfirmLocation}
         className="fixed bottom-6 right-6 z-10 bg-emerald-500 hover:bg-emerald-600 text-white"
       >
         Confirm Location
       </Button>
     </>
-  )
+  );
 }
