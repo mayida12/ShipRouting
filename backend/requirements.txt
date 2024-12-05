@@ -1,8 +1,0 @@
-flask
-flask-cors
-netCDF4
-numpy
-scipy
-numba
-rasterio
-shapely
